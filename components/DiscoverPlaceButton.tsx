@@ -1,12 +1,12 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const Input = () => {
+const DiscoverPlaceButton = () => {
   return (
     <View>
-      <Text>Input</Text>
+      <Text>DiscoverPlaceButton</Text>
     </View>
   )
 }
 
-export default Input;
+export default DiscoverPlaceButton;

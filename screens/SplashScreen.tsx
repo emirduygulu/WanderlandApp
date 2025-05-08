@@ -42,10 +42,8 @@ const SplashScreen = ({ navigation }: SplashScreenProps) => {
 
   return (
     <View style={styles.container}>
-      <Image style={styles.imageLogo} source={require("../assets/logo/wl-logo2.png")} />
-      <View style={styles.textContainer}>
-        <Text style={styles.text}>Wanderland</Text>
-      </View>
+      <Image style={styles.imageLogo} source={require("../assets/logo/wl-logonew.png")} />
+      <Image style={styles.imageLogoText} source={require("../assets/logo/wl-textnew.png")} />
       <TouchableOpacity style={styles.startButton} onPress={handleStart}>
         <Text style={styles.startText}>Başla</Text>
         <Ionicons name="arrow-forward-circle-outline" size={24} color={Colors.light.background} style={styles.icon} />
@@ -62,28 +60,15 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.background
   },
   imageLogo: {
-    width: 375,
-    height: 375,
+    width: 250,
+    height: 250,
     resizeMode: 'contain',
-    marginBottom: 20,
   },
-  imageContainer: {
-    width: '100%',
+
+  imageLogoText: {
+    width: 250,
+    height: 300,
     resizeMode: 'contain',
-    marginBottom: 40
-  },
-  textContainer: {
-    width: '100%',
-    height: 100,
-    resizeMode: 'contain',
-    marginBottom: 40
-  },
-  text: {
-    fontSize: 40,
-    fontWeight: '600',
-    color: Colors.light.text,
-    textAlign: 'center',
-    fontFamily: 'Poppins-Bold',
   },
   startButton: {
     backgroundColor: Colors.light.tint,

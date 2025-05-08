@@ -1,11 +1,11 @@
 
-const tintColorLight = '#0a7ea5';  // Vurgu rengi (button, link vs.)
-const tintColorDark = '#6A9AB0';   // Koyu mod için hâlâ önceki öneriyi kullanıyoruz
+const tintColorLight = '#0a7ea5'; 
+const tintColorDark = '#6A9AB0';   
 
 export const Colors = {
   light: {
     text: '#27445D',             
-    background: '#f1f0ec',       
+    background: '#fff',       
     tint: tintColorLight,      
     icon: '#0a7ea5',            
     tabIconDefault: '#71BBB2',   

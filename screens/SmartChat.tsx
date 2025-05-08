@@ -1,12 +1,12 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const Input = () => {
+const SmartChat = () => {
   return (
     <View>
-      <Text>Input</Text>
+      <Text>SmartChat</Text>
     </View>
   )
 }
 
-export default Input;
+export default SmartChat;

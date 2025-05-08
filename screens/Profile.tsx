@@ -1,12 +1,12 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const Input = () => {
+const Profile = () => {
   return (
     <View>
-      <Text>Input</Text>
+      <Text>Profile</Text>
     </View>
   )
 }
 
-export default Input;
+export default Profile;
