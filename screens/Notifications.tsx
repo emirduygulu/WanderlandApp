@@ -21,7 +21,6 @@ type RootStackParamList = {
 // Navigation için tip tanımı
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
-// Örnek bildirim verileri
 const notificationsData = [
   { id: '1', text: 'Yeni bir mesajınız var', time: '10 dk önce' },
   { id: '2', text: 'Profilinizi güncelleyin', time: '2 saat önce' },
@@ -78,7 +77,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   placeholder: {
-    width: 40, // Geri butonuyla aynı genişlikte
+    width: 40,
   },
   title: {
     fontSize: 20,
