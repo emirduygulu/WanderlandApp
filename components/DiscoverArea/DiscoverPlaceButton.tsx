@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 
 const DiscoverPlaceButton = () => {
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState("Hepsi");
 
   const handleTabPress = (tabName: string) => {
     setActiveTab(tabName);
@@ -14,7 +14,7 @@ const DiscoverPlaceButton = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Keşfetmeye Başla</Text>
+      <Text style={styles.title}>Favori Keşifler</Text>
       
       <ScrollView 
         horizontal 
@@ -112,13 +112,13 @@ const DiscoverPlaceButton = () => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "white",
-    paddingVertical: 16,
+    paddingVertical: 10,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#555",
-    marginBottom: 20,
+    marginBottom: 14,
     paddingHorizontal: 16,
   },
   scrollContainer: {

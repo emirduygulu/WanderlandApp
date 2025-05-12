@@ -1,18 +1,18 @@
-import React from "react";
-import { createStackNavigator } from "@react-navigation/stack";
-import SplashScreen from "../screens/SplashScreen";
-import OnboardingScreen from "../screens/OnBoarding";
-import MainScreen from "../screens/MainScreen";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import Favorite from "@/screens/Favorite";
-import Profile from "@/screens/Profile";
-import Search from "@/screens/Search";
-import SmartChat from "@/screens/SmartChat";
-import Notifications from "@/screens/Notifications";
+import React from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { createStackNavigator } from '@react-navigation/stack';
+import SplashScreen from '../screens/SplashScreen';
+import OnboardingScreen from '../screens/OnBoarding';
+import MainScreen from '../screens/MainScreen';
+import Favorite from '../screens/Favorite';
+import Search from '../screens/Search';
+import SmartChat from '../screens/SmartChat';
+import Profile from '../screens/Profile';
+import Notifications from '../screens/Notifications';
 
 const Stack = createStackNavigator();
 
-export default function Page() {
+export default function App() {
   return (
     <SafeAreaProvider>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -27,4 +27,4 @@ export default function Page() {
       </Stack.Navigator>
     </SafeAreaProvider>
   );
-}
+} 

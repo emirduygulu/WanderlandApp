@@ -5,6 +5,7 @@ import {
   StatusBar,
   Text,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
 import { Colors } from "../constants/Colors";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -17,6 +18,9 @@ import Profile from "./Profile";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import DiscoverPlaceButton from "@/components/DiscoverArea/DiscoverPlaceButton";
+import DiscoverPlacesArea from "../components/DiscoverArea/DiscoverPlacesArea";
+import Input from "../components/Input";
+import TestDiscoverPlacesArea from "../components/TestDiscoverPlacesArea";
 type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
@@ -74,12 +78,20 @@ const HomeTabHeader = () => {
 
 // Ana sayfa içeriği
 const HomeContent = () => {
+  
+
   return (
-    <View>
-      <View style={styles.discoverSection}>
-        <DiscoverPlaceButton />
+    <ScrollView style={styles.homeContent} showsVerticalScrollIndicator={false}>
+      <View style={styles.searchContainer}>
+        <Input />
       </View>
-    </View>
+      <View>
+        <DiscoverPlaceButton />
+        <DiscoverPlacesArea />
+        <TestDiscoverPlacesArea />
+      </View>
+      <View style={styles.spacer} />
+    </ScrollView>
   );
 };
 
@@ -239,34 +251,39 @@ const styles = StyleSheet.create({
   },
   homeContent: {
     flex: 1,
-    alignItems: "center",
-    paddingTop: 40,
+    backgroundColor: Colors.light.background,
+  },
+  welcomeSection: {
     paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
   },
   welcomeText: {
     fontSize: 24,
     fontWeight: "bold",
     color: Colors.light.text,
-    textAlign: "center",
   },
   subtitleText: {
     fontSize: 16,
     color: "#666",
-    marginTop: 8,
-    textAlign: "center",
+    marginTop: 4,
   },
-  featuredSection: {
-    width: "100%",
-    marginTop: 40,
+  sectionContainer: {
+    marginVertical: 10,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
     color: Colors.light.text,
-    marginBottom: 15,
+    marginLeft: 20,
+    marginBottom: 5,
   },
-  discoverSection: {
-    marginTop: 0,
+  spacer: {
+    height: 50,
+  },
+  searchContainer: {
+    marginTop: 10,
+    marginBottom: 5,
   },
 });
 
