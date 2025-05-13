@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, StyleSheet, Text, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
-import { searchPlacesByText } from '@/services/mapapi';
 
 const Input = ({ onSearch }: { onSearch?: (text: string, placeId?: string) => void }) => {
   const [searchText, setSearchText] = useState('');

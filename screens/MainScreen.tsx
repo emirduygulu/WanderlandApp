@@ -21,6 +21,9 @@ import DiscoverPlaceButton from "@/components/DiscoverArea/DiscoverPlaceButton";
 import DiscoverPlacesArea from "../components/DiscoverArea/DiscoverPlacesArea";
 import Input from "../components/Input";
 import TestDiscoverPlacesArea from "../components/TestDiscoverPlacesArea";
+import Category from "../components/ExploreCategory/Category";
+import CityGuideArea from "../components/CityGuide/CityGuideArea";
+
 type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
@@ -89,6 +92,8 @@ const HomeContent = () => {
         <DiscoverPlaceButton />
         <DiscoverPlacesArea />
         <TestDiscoverPlacesArea />
+        <CityGuideArea />
+        <Category />
       </View>
       <View style={styles.spacer} />
     </ScrollView>

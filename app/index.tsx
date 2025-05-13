@@ -9,6 +9,7 @@ import Search from '../screens/Search';
 import SmartChat from '../screens/SmartChat';
 import Profile from '../screens/Profile';
 import Notifications from '../screens/Notifications';
+import CategoryDetailScreen from '../screens/CategoryDetailScreen';
 
 const Stack = createStackNavigator();
 
@@ -24,6 +25,7 @@ export default function App() {
         <Stack.Screen name="SmartChat" component={SmartChat} />
         <Stack.Screen name="Profile" component={Profile} />
         <Stack.Screen name="Notifications" component={Notifications} />
+        <Stack.Screen name="CategoryDetail" component={CategoryDetailScreen} />
       </Stack.Navigator>
     </SafeAreaProvider>
   );

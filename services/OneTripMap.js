@@ -1,9 +1,6 @@
-//import { OTM_API_KEY as ENV_OTM_API_KEY } from '@env';
 
-// API anahtarı yedek olarak kullanılacak (env dosyasından yüklenemediği durumlar için)
 const OTM_API_KEY = '5ae2e3f221c38a28845f05b674f143e88996df66592ed1d4d38906af';
 
-// Yardımcı fonksiyon - bekletme
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // 📌 Endpoint: Places in radius
@@ -25,8 +22,6 @@ export const searchOTMPlaces = async (lat, lon, radius = 50000) => {
   }
 };
 
-// 📌 Endpoint: Place details by xid
-// https://api.opentripmap.com/0.1/en/places/xid/{XID}?apikey=...
 export const getOTMPlaceDetails = async (xid) => {
   try {
     // İstekler arasında 300ms bekle (rate limit aşımını önlemek için)
