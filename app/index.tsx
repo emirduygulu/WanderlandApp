@@ -10,8 +10,23 @@ import SmartChat from '../screens/SmartChat';
 import Profile from '../screens/Profile';
 import Notifications from '../screens/Notifications';
 import CategoryDetailScreen from '../screens/CategoryDetailScreen';
+import CityGuideContent from '../components/CityGuide/CityGuideContent';
 
-const Stack = createStackNavigator();
+// Route tiplerini tanımlayalım
+type RootStackParamList = {
+  Splash: undefined;
+  Onboarding: undefined;
+  Main: undefined;
+  Favorite: undefined;
+  Search: undefined;
+  SmartChat: undefined;
+  Profile: undefined;
+  Notifications: undefined;
+  CategoryDetail: { categoryId: string };
+  CityGuideContent: { name: string; description: string };
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
@@ -26,6 +41,14 @@ export default function App() {
         <Stack.Screen name="Profile" component={Profile} />
         <Stack.Screen name="Notifications" component={Notifications} />
         <Stack.Screen name="CategoryDetail" component={CategoryDetailScreen} />
+        <Stack.Screen 
+          name="CityGuideContent" 
+          component={CityGuideContent} 
+          options={({ route }) => ({ 
+            title: route.params.name || 'Şehir Detayı',
+            headerShown: true 
+          })} 
+        />
       </Stack.Navigator>
     </SafeAreaProvider>
   );

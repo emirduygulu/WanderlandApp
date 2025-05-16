@@ -7,24 +7,24 @@ const Category = () => {
   
   const categories = [
     {
-      id: 'mountain',
-      name: 'Doğa',
-      icon: require('../../assets/icon/park.png')
+      id: 'winter',
+      name: 'Kış',
+      icon: require('../../assets/icon/winter.png')
     },
     {
-      id: 'beach',
+      id: 'spring',
+      name: 'İlkbahar',
+      icon: require('../../assets/icon/flowers.png')
+    },
+    {
+      id: 'summer',
       name: 'Yaz',
-      icon: require('../../assets/icon/summer-holidays.png')
+      icon: require('../../assets/icon/island.png')
     },
     {
-      id: 'historical',
-      name: 'Tarih',
-      icon: require('../../assets/icon/galata-tower.png')
-    },
-    {
-      id: 'entertainment',
-      name: 'Eğlence',
-      icon: require('../../assets/icon/cinema.png')
+      id: 'autumn',
+      name: 'Sonbahar',
+      icon: require('../../assets/icon/autumn.png')
     }
   ];
 

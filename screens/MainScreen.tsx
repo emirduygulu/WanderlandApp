@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   StyleSheet,
@@ -17,10 +17,9 @@ import SmartChat from "./SmartChat";
 import Profile from "./Profile";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import DiscoverPlaceButton from "@/components/DiscoverArea/DiscoverPlaceButton";
+import DiscoverPlaceButton from "../components/DiscoverArea/DiscoverPlaceButton";
 import DiscoverPlacesArea from "../components/DiscoverArea/DiscoverPlacesArea";
 import Input from "../components/Input";
-import TestDiscoverPlacesArea from "../components/TestDiscoverPlacesArea";
 import Category from "../components/ExploreCategory/Category";
 import CityGuideArea from "../components/CityGuide/CityGuideArea";
 
@@ -81,7 +80,7 @@ const HomeTabHeader = () => {
 
 // Ana sayfa içeriği
 const HomeContent = () => {
-  
+  const [selectedDiscoverCategory, setSelectedDiscoverCategory] = useState('Hepsi');
 
   return (
     <ScrollView style={styles.homeContent} showsVerticalScrollIndicator={false}>
@@ -89,9 +88,13 @@ const HomeContent = () => {
         <Input />
       </View>
       <View>
-        <DiscoverPlaceButton />
-        <DiscoverPlacesArea />
-        <TestDiscoverPlacesArea />
+        {/* Favori Keşifler */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Favori Keşifler</Text>
+          <DiscoverPlaceButton onSelectCategory={(category) => setSelectedDiscoverCategory(category)} />
+          <DiscoverPlacesArea categoryName={selectedDiscoverCategory} />
+        </View>
+        
         <CityGuideArea />
         <Category />
       </View>
@@ -274,14 +277,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   sectionContainer: {
-    marginVertical: 10,
+    marginVertical: 16,
+    paddingHorizontal: 16,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: Colors.light.text,
-    marginLeft: 20,
-    marginBottom: 5,
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#333',
   },
   spacer: {
     height: 50,
@@ -289,6 +292,10 @@ const styles = StyleSheet.create({
   searchContainer: {
     marginTop: 10,
     marginBottom: 5,
+  },
+  discoverSection: {
+    marginTop: 20,
+    paddingHorizontal: 16,
   },
 });
 

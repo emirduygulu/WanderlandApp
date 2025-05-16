@@ -3,10 +3,10 @@
 const FSQ_API_KEY = 'fsq3JeH31UQ+807jYa94GoyV21yM3IN48B9pML4otvksmQ0=';
 
 // 📌 Endpoint: Search places by keyword
-export const searchFSQPlaces = async (lat, lon, query) => {
+export const searchFSQPlaces = async (lat, lon, query, radius = 100000) => {
   try {
     const response = await fetch(
-      `https://api.foursquare.com/v3/places/search?query=${query}&ll=${lat},${lon}&limit=20&radius=100000&sort=POPULARITY&categories=16000,16003,16004,16007,10000,12000&fields=fsq_id,name,location,geocodes&locale=tr`,
+      `https://api.foursquare.com/v3/places/search?query=${query}&ll=${lat},${lon}&limit=20&radius=${radius}&sort=POPULARITY&categories=16000,16003,16004,16007,10000,12000&fields=fsq_id,name,location,geocodes&locale=tr`,
       {
         headers: {
           Accept: 'application/json',
