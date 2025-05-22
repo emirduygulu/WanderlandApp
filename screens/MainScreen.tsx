@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 import { Colors } from "../constants/Colors";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -19,9 +20,10 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import DiscoverPlaceButton from "../components/DiscoverArea/DiscoverPlaceButton";
 import DiscoverPlacesArea from "../components/DiscoverArea/DiscoverPlacesArea";
-import Input from "../components/Input";
+import Input from "../components/Search/Input";
 import Category from "../components/ExploreCategory/Category";
 import CityGuideArea from "../components/CityGuide/CityGuideArea";
+import Header from "../components/Header";
 
 type RootStackParamList = {
   Splash: undefined;
@@ -33,6 +35,7 @@ type RootStackParamList = {
   SmartChat: undefined;
   Profile: undefined;
   Notifications: undefined;
+  TravelerCard: undefined;
 };
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
@@ -57,33 +60,25 @@ const TabScreenWrapper = ({
   );
 };
 
-// Ana sayfa için bildirim ikonlu özel başlık
-const HomeTabHeader = () => {
-  const navigation = useNavigation<NavigationProp>();
-
-  return (
-    <View style={styles.tabHeader}>
-      <Text style={styles.tabTitle}>Wanderland</Text>
-      <TouchableOpacity
-        style={styles.notificationIcon}
-        onPress={() => navigation.navigate("Notifications")}
-      >
-        <Ionicons
-          name="notifications-outline"
-          size={24}
-          color={Colors.light.text}
-        />
-      </TouchableOpacity>
-    </View>
-  );
-};
-
 // Ana sayfa içeriği
 const HomeContent = () => {
   const [selectedDiscoverCategory, setSelectedDiscoverCategory] = useState('Hepsi');
+  const navigation = useNavigation<NavigationProp>();
+  
+  const handleTravelerCardPress = () => {
+    Alert.alert(
+      "Gezgin Kartı",
+      "Bu özellik yakında aktif olacak! Farklı kültürler hakkında bilgiler edinebileceksiniz.",
+      [{ text: "Tamam", onPress: () => console.log("Gezgin Kartı butonu tıklandı") }]
+    );
+  };
 
   return (
     <ScrollView style={styles.homeContent} showsVerticalScrollIndicator={false}>
+      <Header 
+        userName="Emir" 
+        onTravelerCardPress={handleTravelerCardPress} 
+      />
       <View style={styles.searchContainer}>
         <Input />
       </View>
@@ -107,7 +102,6 @@ const HomeContent = () => {
 const HomeWrapper = () => {
   return (
     <View style={styles.screenContainer}>
-      <HomeTabHeader />
       <View style={styles.content}>
         <HomeContent />
       </View>
@@ -248,11 +242,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: Colors.light.text,
-  },
-  notificationIcon: {
-    position: "absolute",
-    right: 16,
-    padding: 8,
   },
   content: {
     flex: 1,

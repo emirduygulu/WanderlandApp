@@ -80,11 +80,11 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   categoryItem: {
-    width: 125,
+    width: 90,
     backgroundColor: 'white',
     borderRadius: 20,
     marginRight: 15,
-    padding: 20,
+    padding: 15,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -96,19 +96,19 @@ const styles = StyleSheet.create({
     borderColor: '#f0f0f0',
   },
   iconContainer: {
-    width: 60,
-    height: 60,
+    width: 32,
+    height: 32,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
   },
   icon: {
-    width: 50,
-    height: 50,
+    width: 32,
+    height: 32,
     resizeMode: 'contain',
   },
   categoryName: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: '#333',
   }

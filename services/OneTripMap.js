@@ -84,7 +84,7 @@ export const searchOTMPlaces = async (lat, lon, radius = 10000, limit = 10) => {
       return landmarks;
     }
     
-    // OpenTripMap API'si için değerleri doğru formata çevirelim
+    // OpenTripMap için değerleri doğru formata çevirelim
     const safeRadius = Math.min(Math.max(parseInt(radius) || 5000, 1000), 20000); // 1km-20km arası sınırlama
     const safeLimit = Math.min(Math.max(parseInt(limit) || 5, 3), 15); // 3-15 arası sınırlama
     const safeLat = parseFloat(lat).toFixed(6); // 6 ondalık basamağa yuvarla
@@ -181,6 +181,11 @@ const getCityNameFromCoordinates = async (lat, lon) => {
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms)); // API limitine karşı önlem
 
+// Rate limit hata işleme sayacı
+let retryCount = 0;
+const maxRetries = 5;
+const retryBackoff = 1000; // ms cinsinden temel bekleme süresi
+
 export const getOTMPlaceDetails = async (xid) => {
   if (!xid) {
     console.error('Invalid xid provided');
@@ -225,7 +230,8 @@ export const getOTMPlaceDetails = async (xid) => {
   }
   
   try {
-    await delay(300); // Rate limit koruması
+    // uzun delay ile API rate limit aşımını engelleme
+    await delay(600); 
     
     console.log(`Fetching place details for xid: ${xid}`);
     const res = await fetch(
@@ -233,9 +239,22 @@ export const getOTMPlaceDetails = async (xid) => {
     );
     
     if (!res.ok) {
+      if (res.status === 429 && retryCount < maxRetries) {
+        retryCount++;
+        const waitTime = retryBackoff * Math.pow(2, retryCount - 1);
+        console.warn(`Rate limit hit for ${xid} (429), retrying after ${waitTime}ms (attempt ${retryCount}/${maxRetries})`);
+        
+        await delay(waitTime);
+        return getOTMPlaceDetails(xid); 
+      }
+      
       console.error(`Place details fetch failed for ${xid}: ${res.status} ${res.statusText}`);
+      retryCount = 0; 
       return null;
     }
+    
+    // Başarılı cevap için retry sayacını sıfırla
+    retryCount = 0;
     
     const data = await res.json();
     
@@ -276,6 +295,7 @@ export const getOTMPlaceDetails = async (xid) => {
     return data;
   } catch (err) {
     console.error(`Place details error for ${xid}:`, err);
+    retryCount = 0; // Hata durumunda retry sayacını sıfırla
     return null;
   }
 };

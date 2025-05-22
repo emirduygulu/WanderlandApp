@@ -11,20 +11,8 @@ import Profile from '../screens/Profile';
 import Notifications from '../screens/Notifications';
 import CategoryDetailScreen from '../screens/CategoryDetailScreen';
 import CityGuideContent from '../components/CityGuide/CityGuideContent';
-
-// Route tiplerini tanımlayalım
-type RootStackParamList = {
-  Splash: undefined;
-  Onboarding: undefined;
-  Main: undefined;
-  Favorite: undefined;
-  Search: undefined;
-  SmartChat: undefined;
-  Profile: undefined;
-  Notifications: undefined;
-  CategoryDetail: { categoryId: string };
-  CityGuideContent: { name: string; description: string };
-};
+import ContentScreen from '../screens/ContentScreen';
+import { RootStackParamList } from '../navigation/types';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -48,6 +36,13 @@ export default function App() {
             title: route.params.name || 'Şehir Detayı',
             headerShown: true 
           })} 
+        />
+        <Stack.Screen 
+          name="Content" 
+          component={ContentScreen} 
+          options={{
+            headerShown: false
+          }}
         />
       </Stack.Navigator>
     </SafeAreaProvider>

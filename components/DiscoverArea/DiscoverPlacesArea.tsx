@@ -2,6 +2,32 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { PlaceItem, fetchDiscoverPlaces } from '../../services/categoryService';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+
+// Geçici tip tanımlaması 
+type RootStackParamList = {
+  Content: {
+    item?: {
+      id: string;
+      name: string;
+      location: string;
+      description: string;
+      rating: number;
+      reviews: number;
+      distance: string;
+      amenities?: number;
+      images: Array<{
+        id: string;
+        uri: string;
+      }>;
+      isFavorite?: boolean;
+    };
+    itemId?: string;
+  };
+};
+
+type NavigationProp = StackNavigationProp<RootStackParamList, 'Content'>;
 
 interface DiscoverPlacesAreaProps {
   categoryName: string;
@@ -10,6 +36,7 @@ interface DiscoverPlacesAreaProps {
 const DiscoverPlacesArea: React.FC<DiscoverPlacesAreaProps> = ({ categoryName }) => {
   const [places, setPlaces] = useState<PlaceItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation<NavigationProp>();
 
   useEffect(() => {
     const loadPlaces = async () => {
@@ -35,8 +62,26 @@ const DiscoverPlacesArea: React.FC<DiscoverPlacesAreaProps> = ({ categoryName })
     loadPlaces();
   }, [categoryName]);
 
+  const handlePlacePress = (item: PlaceItem) => {
+    navigation.navigate('Content', {
+      item: {
+        ...item,
+        reviews: 200, // Varsayılan değerler - gerçek veriler API'den gelecek
+        distance: '2.5 km',
+        description: item.description || '', // Eğer tanım yoksa boş string gönder
+        images: [
+          { id: '1', uri: item.imageUrl },
+          // API'den çekilecek diğer görseller
+        ]
+      }
+    });
+  };
+
   const renderItem = ({ item }: { item: PlaceItem }) => (
-    <TouchableOpacity style={styles.placeItem}>
+    <TouchableOpacity 
+      style={styles.placeItem}
+      onPress={() => handlePlacePress(item)}
+    >
       <Image
         source={{ uri: item.imageUrl }}
         style={styles.placeImage}
@@ -114,7 +159,7 @@ const styles = StyleSheet.create({
     fontSize: 14
   },
   placeItem: {
-    width: 260,
+    width: 180,
     marginRight: 16,
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -126,7 +171,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   placeImage: {
-    width: 280,
+    width: 180,
     height: 150,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,

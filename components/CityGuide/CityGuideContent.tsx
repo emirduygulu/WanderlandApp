@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, ScrollView, Dimensions } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { getCoordinatesByCity, searchOTMPlaces, getOTMPlaceDetails } from '../../services/OneTripMap';
 import { Ionicons } from '@expo/vector-icons';
+import { StackNavigationProp } from '@react-navigation/stack';
 
-// Ekran genişliğini alıyoruz
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = width - 40; // Container padding'i çıkarıldı
+const CARD_WIDTH = width - 40; 
 
 // Route parametreleri için tip tanımı
 type RootStackParamList = {
@@ -14,9 +14,14 @@ type RootStackParamList = {
     name: string;
     description: string;
   };
+  Content: {
+    item?: any;
+    itemId?: string; 
+  };
 };
 
 type CityGuideContentRouteProp = RouteProp<RootStackParamList, 'CityGuideContent'>;
+type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 // API'den dönen yer detayları için tip tanımı
 interface PlaceDetail {
@@ -28,11 +33,89 @@ interface PlaceDetail {
   wikipedia_extracts?: {
     text: string;
   };
+  kind?: string;
+  address?: {
+    city?: string;
+    road?: string;
+    state?: string;
+    neighbourhood?: string;
+  };
   custom?: boolean;
 }
 
+const translateCategory = (kind: string): string => {
+  const categories: Record<string, string> = {
+    'interesting_places': 'İlgi Çekici Yerler',
+    'architecture': 'Mimari',
+    'cultural': 'Kültürel',
+    'historic': 'Tarihi',
+    'natural': 'Doğal Güzellik',
+    'foods': 'Yeme-İçme',
+    'museums': 'Müze',
+    'religion': 'Dini Mekan',
+    'sport': 'Spor',
+    'amusements': 'Eğlence',
+    'shops': 'Alışveriş',
+    'other': 'Diğer'
+  };
+  
+  if (!kind) return 'İlgi Çekici Yerler';
+  
+  const mainCategory = kind.split('_')[0];
+  return categories[mainCategory] || 'İlgi Çekici Yerler';
+};
+
+// Wikipedia metinlerini temizleme ve basit çeviri
+const cleanDescription = (text: string): string => {
+  if (!text) return '';
+  
+  // İngilizce metinleri Türkçe karşılıkları ile değiştirme
+  const translations: Record<string, string> = {
+    'is a': 'bir',
+    'located in': 'bulunmaktadır',
+    'century': 'yüzyıl',
+    'the city': 'şehir',
+    'tourists': 'turistler',
+    'built': 'inşa edildi',
+    'ancient': 'antik',
+    'historical': 'tarihi',
+    'site': 'alan',
+    'famous': 'ünlü',
+    'museum': 'müze',
+    'architecture': 'mimari',
+    'mosque': 'cami',
+    'church': 'kilise',
+    'palace': 'saray',
+    'castle': 'kale',
+    'beach': 'plaj',
+    'mountain': 'dağ',
+    'river': 'nehir',
+    'lake': 'göl',
+    'island': 'ada',
+    'bridge': 'köprü',
+    'tower': 'kule',
+    'park': 'park',
+    'square': 'meydan',
+    'street': 'cadde'
+  };
+  
+  let translated = text;
+  
+  Object.entries(translations).forEach(([eng, tr]) => {
+    translated = translated.replace(new RegExp(`\\b${eng}\\b`, 'gi'), tr);
+  });
+  
+  // Metni kısaltma
+  if (translated.length > 150) {
+    return translated.slice(0, 150) + '...';
+  }
+  
+  return translated;
+};
+
 const CityGuideContent = () => {
   const route = useRoute<CityGuideContentRouteProp>();
+  const navigation = useNavigation<NavigationProp>();
   const { name, description } = route.params;
   const [placeDetails, setPlaceDetails] = useState<PlaceDetail[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,20 +134,29 @@ const CityGuideContent = () => {
           return;
         }
 
-        // Önce 7 popüler yer gelmekte.
-        const places = await searchOTMPlaces(coords.lat, coords.lon, 15000, 7);
+        // Daha fazla turistik yer çekmek için sayıyı artırıyoruz
+        const places = await searchOTMPlaces(coords.lat, coords.lon, 15000, 12);
         if (!places || places.length === 0) {
           setError('Bu şehir için turistik yerler bulunamadı.');
           setLoading(false);
           return;
         }
 
-        // Paralel olarak tüm yer detaylarını çekilmekte.
-        const detailsPromises = places.map((place: any) => getOTMPlaceDetails(place.xid));
-        const details = await Promise.all(detailsPromises);
-
-        // Boş olmayanları filtreleme işlemi gerçekleştirilmekte.
-        const validDetails = details.filter(Boolean);
+        // Paralel istekler yerine sıralı istekler kullanarak API rate limit aşımını engelleme
+        const validDetails = [];
+        // En fazla 8 yer göster, rate limit sorunlarını azaltmak için
+        const limitedPlaces = places.slice(0, 8);
+        // Sıralı istekler - daha yavaş ama rate limit'i aşmaz
+        for (const place of limitedPlaces) {
+          try {
+            const detail = await getOTMPlaceDetails(place.xid);
+            if (detail) {
+              validDetails.push(detail);
+            }
+          } catch (error) {
+            console.error(`Error fetching details for ${place.xid}:`, error);
+          }
+        }
         
         setPlaceDetails(validDetails);
       } catch (err) {
@@ -77,6 +169,46 @@ const CityGuideContent = () => {
 
     fetchPlaces();
   }, [name]);
+
+  // Geri butonuna basıldığında önceki sayfaya dön
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
+  // Bir yere tıklandığında detay sayfasına git
+  const handlePlacePress = async (place: PlaceDetail) => {
+    try {
+      // Yerden alınması gereken bilgiler
+      const placeName = place.name;
+      const placeImage = place.preview?.source || `https://source.unsplash.com/random/800x600/?${encodeURIComponent(placeName)},landmark`;
+      const placeDesc = place.wikipedia_extracts?.text ? cleanDescription(place.wikipedia_extracts.text) : 
+      `${placeName}, ${name} bölgesinde bulunan önemli bir turistik noktadır.`;
+      
+      // Random rating
+      const rating = (Math.random() * (5 - 4) + 4).toFixed(1);
+      const reviewCount = Math.floor(Math.random() * 1000) + 100;
+      
+      // Navigate to ContentPage
+      navigation.navigate('Content', {
+        item: {
+          id: place.xid,
+          name: placeName,
+          location: `${place.address?.city || name}`,
+          description: placeDesc,
+          imageUrl: placeImage,
+          rating: parseFloat(rating),
+          reviews: reviewCount,
+          distance: "Bölgede",
+          category: translateCategory(place.kind || ''),
+          images: [
+            { id: '1', uri: placeImage },
+          ]
+        }
+      });
+    } catch (error) {
+      console.error("Error navigating to place details:", error);
+    }
+  };
 
   // Yıldız derecelendirmesi gösterme işlemi gerçekleştirilmekte.
   const renderRating = (rating = 4) => {
@@ -119,7 +251,7 @@ const CityGuideContent = () => {
     return (
       <View style={[styles.container, styles.centerContent]}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity onPress={() => {}} style={styles.backButton}>
+        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#333" />
           <Text style={styles.backButtonText}>Geri</Text>
         </TouchableOpacity>
@@ -127,9 +259,13 @@ const CityGuideContent = () => {
     );
   }
 
-  // Her yerle ilgili bir kart oluşturuluyor.
+  // Her yerle ilgili bir kart oluşturulmaktadır.
   const renderPlaceCard = (place: PlaceDetail) => (
-    <View key={place.xid} style={styles.card}>
+    <TouchableOpacity 
+      key={place.xid} 
+      style={styles.card}
+      onPress={() => handlePlacePress(place)}
+    >
       <View style={styles.imageContainer}>
         {place.preview?.source ? (
           <Image 
@@ -149,29 +285,29 @@ const CityGuideContent = () => {
         </View>
         <View style={styles.ratingContainer}>
           <Ionicons name="star" size={16} color="#FFD700" />
-          <Text style={styles.rating}>{place.custom ? "5.0" : "4.5"}</Text>
-          <Text style={styles.reviews}>{Math.round((place.custom ? 5.0 : 4.5) * 10)} Reviews</Text>
+          <Text style={styles.rating}>{place.custom ? "5.0" : "4.7"}</Text>
+          <Text style={styles.reviews}>{place.custom ? 520 : Math.floor(Math.random() * 500) + 100} Değerlendirme</Text>
         </View>
 
         {/* Açıklama metnini göster */}
         {place.wikipedia_extracts?.text && (
-          <Text style={styles.itemDescription}>{place.wikipedia_extracts.text}</Text>
+          <Text style={styles.itemDescription}>{cleanDescription(place.wikipedia_extracts.text)}</Text>
         )}
 
-        {/* Yol tarifi butonu */}
-        <TouchableOpacity style={styles.directionsButton}>
-          <Ionicons name="navigate-outline" size={16} color="#fff" />
-          <Text style={styles.directionsText}>Yol Tarifi Al</Text>
+        {/* Detaya Git Butonu */}
+        <TouchableOpacity style={styles.directionsButton} onPress={() => handlePlacePress(place)}>
+          <Ionicons name="information-circle-outline" size={16} color="#fff" />
+          <Text style={styles.directionsText}>Detayları Görüntüle</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
       {/* Başlık ve Geri Butonu */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => {}} style={styles.backButton}>
+        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{name}</Text>
@@ -186,6 +322,7 @@ const CityGuideContent = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}
       >
+        <Text style={styles.sectionTitle}>Popüler Yerler</Text>
         {placeDetails.length > 0 ? (
           placeDetails.map(place => renderPlaceCard(place))
         ) : (
@@ -225,43 +362,55 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 15,
+    paddingTop: 10,
   },
   backButton: {
-    padding: 5,
+    padding: 8,
     marginRight: 10,
+    borderRadius: 20,
+    backgroundColor: '#f5f5f5',
   },
   backButtonText: {
     fontSize: 16,
     color: '#333',
     marginLeft: 5,
+    fontWeight: '500',
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#1F2937',
     flex: 1,
   },
   categoryIcon: {
     marginLeft: 10,
+    color: '#E17055',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 16,
   },
   title: {
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 8,
   },
   description: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#666',
     marginBottom: 20,
+    lineHeight: 22,
   },
   listContainer: {
     paddingVertical: 10,
-    paddingBottom: 20,
+    paddingBottom: 50,
   },
   card: {
     width: CARD_WIDTH,
-    marginBottom: 20,
+    marginBottom: 25,
     borderRadius: 24,
     overflow: 'hidden',
     backgroundColor: 'white',
@@ -273,7 +422,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    height: 450,
+    height: 220,
     borderRadius: 24,
     overflow: 'hidden',
   },
@@ -291,7 +440,12 @@ const styles = StyleSheet.create({
     padding: 15,
     backgroundColor: 'white',
     borderRadius: 18,
-    marginTop: -110,
+    marginTop: -60,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   locationContainer: {
     flexDirection: 'row',
@@ -299,7 +453,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   location: {
-    fontSize: 10,
+    fontSize: 13,
     color: '#6B7280',
     marginLeft: 4,
   },
@@ -311,38 +465,38 @@ const styles = StyleSheet.create({
     marginHorizontal: 1,
   },
   rating: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     color: '#1F2937',
     marginLeft: 4,
   },
   reviews: {
-    fontSize: 9,
+    fontSize: 12,
     color: '#6B7280',
     marginLeft: 8,
   },
   itemDescription: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#4B5563',
     marginTop: 12,
-    lineHeight: 18,
-    maxHeight: 120,
+    lineHeight: 22,
+    maxHeight: 80, // Biraz daha kısa
     overflow: 'hidden',
   },
   directionsButton: {
-    backgroundColor: '#2A3663',
+    backgroundColor: '#E17055',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 10,
-    borderRadius: 8,
+    padding: 12,
+    borderRadius: 12,
     marginTop: 12,
   },
   directionsText: {
     color: '#fff',
     fontWeight: '600',
     marginLeft: 6,
-    fontSize: 12,
+    fontSize: 14,
   },
   errorContainer: {
     padding: 40,

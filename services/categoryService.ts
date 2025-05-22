@@ -339,7 +339,17 @@ export const fetchDiscoverPlaces = async (category: string): Promise<PlaceItem[]
 
 // Mevsimsel şehirler için veri dönüştürme fonksiyonu
 const getSeasonalCityData = async (season: CategoryIds): Promise<PlaceItem[]> => {
-  const seasonData = SEASONAL_CITIES[season];
+  // Sadece mevsimsel kategoriler için SEASONAL_CITIES'e erişim sağla
+  const seasonalCategories = ['winter', 'spring', 'summer', 'autumn'] as const;
+  type SeasonalCategoryType = typeof seasonalCategories[number];
+  
+  // Eğer verilen kategori bir mevsim kategorisi değilse boş dizi döndür
+  if (!seasonalCategories.includes(season as any)) {
+    console.error(`Invalid seasonal category: ${season}`);
+    return [];
+  }
+  
+  const seasonData = SEASONAL_CITIES[season as SeasonalCategoryType];
   if (!seasonData || !Array.isArray(seasonData)) {
     console.error(`No season data found for ${season}`);
     return [];
@@ -439,7 +449,8 @@ export const fetchCategoryData = async (categoryId: string): Promise<CategoryDat
     const category = categoryMapping[validCategoryId];
     
     // Eğer mevsimsel kategori ise, PopulerLandmarks'dan veri al
-    if (['winter', 'spring', 'summer', 'autumn'].includes(validCategoryId)) {
+    const seasonalCategories = ['winter', 'spring', 'summer', 'autumn'];
+    if (seasonalCategories.includes(validCategoryId)) {
       const seasonalItems = await getSeasonalCityData(validCategoryId);
       
       if (seasonalItems.length > 0) {
