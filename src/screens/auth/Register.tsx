@@ -2,16 +2,17 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useState } from 'react';
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { RootStackParamList } from '../../navigation/types';
@@ -26,34 +27,62 @@ const RegisterScreen = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleRegister = async () => {
+  const validateInputs = () => {
     if (!email || !password || !confirmPassword || !name) {
-      Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
-      return;
+      setError('Lütfen tüm alanları doldurun.');
+      return false;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Hata', 'Şifreler eşleşmiyor.');
-      return;
+      setError('Şifreler eşleşmiyor.');
+      return false;
     }
 
     if (password.length < 6) {
-      Alert.alert('Hata', 'Şifre en az 6 karakter olmalıdır.');
+      setError('Şifre en az 6 karakter olmalıdır.');
+      return false;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Geçerli bir e-posta adresi girin.');
+      return false;
+    }
+
+    setError('');
+    return true;
+  };
+
+  const handleRegister = async () => {
+    if (!validateInputs()) {
       return;
     }
 
     try {
       setLoading(true);
-      await register(email, password);
+      await register(email, password, name);
       Alert.alert('Başarılı', 'Kayıt işlemi tamamlandı.', [
         {
-          text: 'Tamam',
+          text: 'Giriş Yap',
           onPress: () => navigation.navigate('Login'),
         },
       ]);
-    } catch (error) {
-      Alert.alert('Hata', 'Kayıt olurken bir hata oluştu. Lütfen tekrar deneyin.');
+    } catch (error: any) {
+      let errorMessage = 'Kayıt olurken bir hata oluştu.';
+      
+      // Firebase specific error handling
+      if (error.message.includes('email-already-in-use')) {
+        errorMessage = 'Bu e-posta adresi zaten kullanılıyor.';
+      } else if (error.message.includes('invalid-email')) {
+        errorMessage = 'Geçersiz e-posta adresi.';
+      } else if (error.message.includes('weak-password')) {
+        errorMessage = 'Şifre çok zayıf.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -69,6 +98,8 @@ const RegisterScreen = () => {
           <View style={styles.contentContainer}>
             <Text style={styles.title}>Wanderland</Text>
             <Text style={styles.subtitle}>Yeni Hesap Oluştur</Text>
+
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
             <View style={styles.inputContainer}>
               <TextInput
@@ -107,14 +138,17 @@ const RegisterScreen = () => {
               onPress={handleRegister}
               disabled={loading}
             >
-              <Text style={styles.registerButtonText}>
-                {loading ? 'Kayıt Yapılıyor...' : 'Kayıt Ol'}
-              </Text>
+              {loading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.registerButtonText}>Kayıt Ol</Text>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.loginButton}
               onPress={() => navigation.navigate('Login')}
+              disabled={loading}
             >
               <Text style={styles.loginButtonText}>
                 Zaten hesabınız var mı? Giriş Yapın
@@ -156,6 +190,11 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     color: '#666',
   },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
   inputContainer: {
     marginBottom: 20,
   },
@@ -171,7 +210,9 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 15,
+    height: 50,
   },
   registerButtonText: {
     color: '#fff',
