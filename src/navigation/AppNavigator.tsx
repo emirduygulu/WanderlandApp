@@ -12,6 +12,9 @@ import SmartChat from '../screens/main/SmartChat';
 import CategoryDetailScreen from '../screens/modals/CategoryDetailScreen';
 import ContentScreen from '../screens/modals/ContentScreen';
 import OnboardingScreen from '../screens/OnBoarding';
+import AvatarSelector from '../screens/profile/AvatarSelector';
+import EditProfile from '../screens/profile/EditProfile';
+import Settings from '../screens/profile/Settings';
 import SplashScreen from '../screens/SplashScreen';
 import { RootStackParamList } from './types';
 
@@ -30,6 +33,9 @@ export const AppNavigator = () => {
       <Stack.Screen name="Search" component={Search} />
       <Stack.Screen name="SmartChat" component={SmartChat} />
       <Stack.Screen name="Profile" component={Profile} />
+      <Stack.Screen name="EditProfile" component={EditProfile} />
+      <Stack.Screen name="AvatarSelector" component={AvatarSelector} />
+      <Stack.Screen name="Settings" component={Settings} />
       <Stack.Screen name="Notifications" component={Notifications} />
       <Stack.Screen name="CategoryDetail" component={CategoryDetailScreen} />
       <Stack.Screen 

@@ -3,7 +3,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -19,6 +19,7 @@ import Category from "../../components/ExploreCategory/Category";
 import Header from "../../components/Header";
 import Input from "../../components/Search/Input";
 import { Colors } from "../../constants/Colors";
+import { useAuth } from "../../context/AuthContext";
 import { RootStackParamList } from "../../navigation/types";
 import Favorite from "./Favorite";
 import Profile from "./Profile";
@@ -51,6 +52,32 @@ const TabScreenWrapper = ({
 const HomeContent = () => {
   const [selectedDiscoverCategory, setSelectedDiscoverCategory] = useState('Hepsi');
   const navigation = useNavigation<NavigationProp>();
+  const { user } = useAuth();
+  const [userName, setUserName] = useState('Wanderlander');
+  const [userEmail, setUserEmail] = useState('');
+  
+  // Kullanıcı bilgilerini kontrol et
+  useEffect(() => {
+    if (user) {
+      if (user.user_metadata && user.user_metadata.name) {
+        // Supabase user metadata'dan isim bilgisini al
+        setUserName(user.user_metadata.name);
+      } else if (user.email) {
+        // Email'den kullanıcı adı oluştur
+        const nameFromEmail = user.email.split('@')[0];
+        setUserName(nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1));
+      }
+      
+      // E-posta adresini ayarla
+      if (user.email) {
+        setUserEmail(user.email);
+      }
+    } else {
+      // Kullanıcı giriş yapmamışsa varsayılan ad kullan
+      setUserName('Wanderlander');
+      setUserEmail('');
+    }
+  }, [user]);
   
   const handleTravelerCardPress = () => {
     Alert.alert(
@@ -63,8 +90,10 @@ const HomeContent = () => {
   return (
     <ScrollView style={styles.homeContent} showsVerticalScrollIndicator={false}>
       <Header 
-        userName="Emir" 
-        onTravelerCardPress={handleTravelerCardPress} 
+        userName={userName || 'Wanderlander'}
+        userEmail={userEmail || ''}
+        onTravelerCardPress={() => navigation.navigate('Notifications')}
+        onAvatarPress={() => navigation.navigate('AvatarSelector')}
       />
       <View style={styles.searchContainer}>
         <Input />
@@ -97,6 +126,9 @@ const HomeWrapper = () => {
 };
 
 const MainScreen = () => {
+  const { user } = useAuth();
+  const navigation = useNavigation<NavigationProp>();
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -194,6 +226,15 @@ const MainScreen = () => {
                 color={focused ? Colors.light.tint : "#999"}
               />
             ),
+          }}
+          listeners={{
+            tabPress: (e) => {
+              // Kullanıcı giriş yapmamışsa, tab tıklamasını engelle ve Login'e yönlendir
+              if (!user) {
+                e.preventDefault();
+                navigation.navigate('Login');
+              }
+            },
           }}
         >
           {() => (

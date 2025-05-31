@@ -23,7 +23,7 @@ const SplashScreen = ({ navigation }: SplashScreenProps) => {
         navigation.replace('Main');
       }
     };
-   // checkLaunch();
+   checkLaunch();
   }, [navigation]);
 
   const handleStart = async () => {

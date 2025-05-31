@@ -1,18 +1,10 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  signOut,
-  updateProfile
-} from 'firebase/auth';
+import { User } from '@supabase/supabase-js';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import { auth } from '../config/firebase';
+import { supabase } from '../config/supabaseConfig';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: any | null;
+  user: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   register: (email: string, password: string, name?: string) => Promise<void>;
@@ -36,35 +28,87 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Check if user is logged in when app starts
+  // Auth durumunu izle - basitleştirilmiş versiyon
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        setIsAuthenticated(true);
-        // Store user in AsyncStorage for offline access
-        await AsyncStorage.setItem('user', JSON.stringify(firebaseUser));
-      } else {
-        setUser(null);
-        setIsAuthenticated(false);
-        await AsyncStorage.removeItem('user');
+    console.log("Setting up auth state listener");
+    
+    // Get initial session
+    const initSession = async () => {
+      try {
+        console.log("Fetching initial session...");
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error getting session:", error);
+          return;
+        }
+        
+        console.log("Session data:", data.session ? "Session exists" : "No session");
+        
+        if (data.session?.user) {
+          console.log("User found in session:", data.session.user.email);
+          setUser(data.session.user);
+          setIsAuthenticated(true);
+        } else {
+          console.log("No user in session");
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error("Error getting session:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    };
+    
+    initSession();
+    
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log("Auth state changed:", event, session ? "User session active" : "No user session");
+        
+        if (session?.user) {
+          console.log("User in new session:", session.user.email);
+          setUser(session.user);
+          setIsAuthenticated(true);
+        } else {
+          console.log("No user in new session");
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+        
+        setLoading(false);
+      }
+    );
 
-    return () => unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      setUser(userCredential.user);
+      console.log("Attempting login...", { email });
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        console.error("Login error:", error.message);
+        throw new Error(error.message);
+      }
+      
+      console.log("Login successful:", data.user?.id);
+      
+      setUser(data.user);
       setIsAuthenticated(true);
-      await AsyncStorage.setItem('user', JSON.stringify(userCredential.user));
       return;
     } catch (error: any) {
       console.error('Login error:', error.message);
@@ -77,8 +121,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       setLoading(true);
-      await signOut(auth);
-      await AsyncStorage.removeItem('user');
+      console.log("Attempting logout...");
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error("Logout error:", error.message);
+        throw new Error(error.message);
+      }
+      
+      console.log("Logout successful");
       setUser(null);
       setIsAuthenticated(false);
     } catch (error: any) {
@@ -92,18 +143,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (email: string, password: string, name?: string) => {
     try {
       setLoading(true);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("Attempting registration...", { email, name });
       
-      // Update user profile with display name if provided
-      if (name && userCredential.user) {
-        await updateProfile(userCredential.user, {
-          displayName: name
-        });
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: name ? { name } : undefined
+        }
+      });
+      
+      if (error) {
+        console.error("Registration error:", error.message);
+        throw new Error(error.message);
       }
       
-      setUser(userCredential.user);
-      setIsAuthenticated(true);
-      await AsyncStorage.setItem('user', JSON.stringify(userCredential.user));
+      console.log("Registration data:", data);
+      
+      if (data.user) {
+        // If auto-confirm is disabled in Supabase, the user won't be fully registered until confirming email
+        if (data.session) {
+          console.log("User registered and logged in:", data.user.id);
+          setUser(data.user);
+          setIsAuthenticated(true);
+        } else {
+          // Email confirmation required
+          console.log("Registration successful, email confirmation required");
+        }
+      }
+      
       return;
     } catch (error: any) {
       console.error('Registration error:', error.message);
@@ -115,7 +183,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const resetPassword = async (email: string) => {
     try {
-      await sendPasswordResetEmail(auth, email);
+      console.log("Attempting password reset...", { email });
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      
+      if (error) {
+        console.error("Password reset error:", error.message);
+        throw new Error(error.message);
+      }
+      
+      console.log("Password reset email sent");
     } catch (error: any) {
       console.error('Password reset error:', error.message);
       throw new Error(error.message || 'Password reset failed');

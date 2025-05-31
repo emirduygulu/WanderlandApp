@@ -33,6 +33,9 @@ yarn-error.*
 # local env files
 .env
 .env*.local
+.supabaseConfig.ts
+
+
 
 # typescript
 *.tsbuildinfo
@@ -42,3 +45,4 @@ app-example
 # Environment variables
 .env
 .env.*
+.supabaseConfig.ts

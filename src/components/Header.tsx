@@ -1,27 +1,36 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
-import React from 'react'
 import { Ionicons } from "@expo/vector-icons";
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors } from "../constants/Colors";
+import Avatar from "./Avatar";
 
 interface HeaderProps {
   userName?: string;
   onTravelerCardPress?: () => void;
+  userEmail?: string;
+  onAvatarPress?: () => void;
 }
 
-const Header = ({ userName = "Leonardo", onTravelerCardPress = () => {} }: HeaderProps) => {
+const Header = ({ 
+  userName = "Wanderlander", 
+  userEmail,
+  onTravelerCardPress = () => {},
+  onAvatarPress
+}: HeaderProps) => {
   const greeting = getGreeting();
   
   return (
     <View style={styles.container}>
       <View style={styles.userInfo}>
-        <Image 
-          source={require('../assets/icon/avatar.png')} 
-          style={styles.avatar}
-          defaultSource={require('../assets/icon/avatar.png')}
-        />
+        <TouchableOpacity onPress={onAvatarPress} disabled={!onAvatarPress}>
+          <Avatar 
+            size={50}
+            style={styles.avatar}
+          />
+        </TouchableOpacity>
         <View style={styles.textContainer}>
           <Text style={styles.greeting}>{greeting}</Text>
-          <Text style={styles.userName}>{userName}!</Text>
+          <Text style={styles.userName}>{userName || 'Wanderlander'}!</Text>
           <Text style={styles.exploreText}>Dünyayı Wanderland ile Keşfet</Text>
         </View>
       </View>
@@ -56,10 +65,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
     marginRight: 12,
+    borderWidth: 2,
+    borderColor: '#FF6B00',
   },
   textContainer: {
     justifyContent: 'center',

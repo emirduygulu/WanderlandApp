@@ -10,7 +10,10 @@ export type RootStackParamList = {
   Search: undefined;
   SmartChat: undefined;
   Profile: undefined;
+  EditProfile: undefined;
+  AvatarSelector: undefined;
   Notifications: undefined;
+  Settings: undefined;
   CategoryDetail: {
     id: string;
     name: string;

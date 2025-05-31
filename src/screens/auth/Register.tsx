@@ -1,18 +1,18 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { RootStackParamList } from '../../navigation/types';
@@ -64,22 +64,19 @@ const RegisterScreen = () => {
     try {
       setLoading(true);
       await register(email, password, name);
-      Alert.alert('Başarılı', 'Kayıt işlemi tamamlandı.', [
-        {
-          text: 'Giriş Yap',
-          onPress: () => navigation.navigate('Login'),
-        },
-      ]);
+      navigation.navigate('Main');
     } catch (error: any) {
       let errorMessage = 'Kayıt olurken bir hata oluştu.';
       
-      // Firebase specific error handling
-      if (error.message.includes('email-already-in-use')) {
+      // Supabase specific error handling
+      if (error.message.includes('email already exists')) {
         errorMessage = 'Bu e-posta adresi zaten kullanılıyor.';
-      } else if (error.message.includes('invalid-email')) {
+      } else if (error.message.includes('invalid email')) {
         errorMessage = 'Geçersiz e-posta adresi.';
-      } else if (error.message.includes('weak-password')) {
-        errorMessage = 'Şifre çok zayıf.';
+      } else if (error.message.includes('password')) {
+        errorMessage = 'Şifre en az 6 karakter olmalıdır.';
+      } else if (error.message.includes('network')) {
+        errorMessage = 'Ağ hatası. İnternet bağlantınızı kontrol edin.';
       }
       
       setError(errorMessage);
@@ -94,6 +91,13 @@ const RegisterScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#000" />
+        </TouchableOpacity>
+        
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.contentContainer}>
             <Text style={styles.title}>Wanderland</Text>
@@ -105,6 +109,7 @@ const RegisterScreen = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Ad Soyad"
+                placeholderTextColor="#999"
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
@@ -112,6 +117,7 @@ const RegisterScreen = () => {
               <TextInput
                 style={styles.input}
                 placeholder="E-posta"
+                placeholderTextColor="#999"
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -120,6 +126,7 @@ const RegisterScreen = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Şifre"
+                placeholderTextColor="#999"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -127,6 +134,7 @@ const RegisterScreen = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Şifre Tekrar"
+                placeholderTextColor="#999"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry
@@ -182,7 +190,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 10,
-    color: '#FF6B00',
+    color: '#0A7EA5',
   },
   subtitle: {
     fontSize: 18,
@@ -206,7 +214,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   registerButton: {
-    backgroundColor: '#FF6B00',
+    backgroundColor: '#0A7EA5',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -223,8 +231,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loginButtonText: {
-    color: '#FF6B00',
+    color: '#0A7EA5',
     fontSize: 14,
+  },
+  backButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 10 : 30,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
   },
 });
 

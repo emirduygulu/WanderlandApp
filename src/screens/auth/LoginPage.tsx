@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/build/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useState } from 'react';
@@ -26,6 +27,9 @@ const LoginScreen = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const handleBackPress = () => {
+    navigation.goBack();
+  };
   const validateInputs = () => {
     if (!email || !password) {
       setError('Lütfen e-posta ve şifrenizi girin.');
@@ -51,20 +55,19 @@ const LoginScreen = () => {
     try {
       setLoading(true);
       await login(email, password);
-      // Navigation to main screen is handled by the auth state listener in AuthContext
+      // Navigate to Main screen after successful login
+      navigation.navigate('Main');
     } catch (error: any) {
       let errorMessage = 'Giriş yapılırken bir hata oluştu.';
       
-      // Firebase specific error handling
-      if (error.message.includes('user-not-found')) {
-        errorMessage = 'Bu e-posta adresine ait bir hesap bulunamadı.';
-      } else if (error.message.includes('wrong-password')) {
-        errorMessage = 'Hatalı şifre. Lütfen tekrar deneyin.';
-      } else if (error.message.includes('invalid-email')) {
-        errorMessage = 'Geçersiz e-posta adresi.';
-      } else if (error.message.includes('too-many-requests')) {
+      // Supabase specific error handling
+      if (error.message.includes('Invalid login credentials')) {
+        errorMessage = 'Geçersiz e-posta veya şifre. Lütfen tekrar deneyin.';
+      } else if (error.message.includes('Email not confirmed')) {
+        errorMessage = 'E-posta adresiniz henüz doğrulanmamış. Lütfen e-postanızı kontrol edin.';
+      } else if (error.message.includes('Too many requests')) {
         errorMessage = 'Çok fazla başarısız giriş denemesi. Lütfen daha sonra tekrar deneyin.';
-      } else if (error.message.includes('network-request-failed')) {
+      } else if (error.message.includes('network')) {
         errorMessage = 'Ağ hatası. İnternet bağlantınızı kontrol edin.';
       }
       
@@ -101,9 +104,9 @@ const LoginScreen = () => {
             } catch (error: any) {
               let errorMessage = 'Şifre sıfırlama bağlantısı gönderilirken bir hata oluştu.';
               
-              if (error.message.includes('user-not-found')) {
+              if (error.message.includes('Email not found')) {
                 errorMessage = 'Bu e-posta adresine ait bir hesap bulunamadı.';
-              } else if (error.message.includes('invalid-email')) {
+              } else if (error.message.includes('Invalid email')) {
                 errorMessage = 'Geçersiz e-posta adresi.';
               }
               
@@ -123,6 +126,11 @@ const LoginScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
+        {/* Back Button */}
+        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+          <Ionicons name="arrow-back" size={24} color="#000" />
+        </TouchableOpacity>
+        
         <View style={styles.contentContainer}>
           <Text style={styles.title}>Wanderland</Text>
           <Text style={styles.subtitle}>Hoş Geldiniz</Text>
@@ -133,6 +141,7 @@ const LoginScreen = () => {
             <TextInput
               style={styles.input}
               placeholder="E-posta"
+              placeholderTextColor="#999"
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -141,6 +150,7 @@ const LoginScreen = () => {
             <TextInput
               style={styles.input}
               placeholder="Şifre"
+              placeholderTextColor="#999"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -199,7 +209,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 10,
-    color: '#FF6B00',
+    color: '#0A7EA5',
   },
   subtitle: {
     fontSize: 18,
@@ -222,6 +232,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 16,
   },
+  overlayTop: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingTop: 50,
+      paddingHorizontal: 20,
+    },
   forgotPasswordButton: {
     alignItems: 'flex-end',
     marginBottom: 20,
@@ -231,7 +247,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   loginButton: {
-    backgroundColor: '#FF6B00',
+    backgroundColor: '#0A7EA5',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -248,8 +264,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   registerButtonText: {
-    color: '#FF6B00',
+    color: '#0A7EA5',
     fontSize: 14,
+  },
+  backButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 10 : 30,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+  },
+  backButtonText: {
+    fontSize: 24,
+    color: '#000',
   },
 });
 

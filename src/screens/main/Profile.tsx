@@ -1,29 +1,40 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useEffect, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Avatar from '../../components/Avatar';
+import { useAuth } from '../../context/AuthContext';
 import { RootStackParamList } from '../../navigation/types';
+
 
 type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Profile'>;
 
 const Profile = () => {
   const navigation = useNavigation<ProfileScreenNavigationProp>();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, logout } = useAuth();
+  const [userName, setUserName] = useState('Kullanıcı');
+  const [userEmail, setUserEmail] = useState('');
+  const [loading, setLoading] = useState(false);
 
+  // Kullanıcı durumunu izle ve kullanıcı null olduğunda Login ekranına yönlendir
   useEffect(() => {
-    checkLoginStatus();
-  }, []);
-
-  const checkLoginStatus = async () => {
-    const token = await AsyncStorage.getItem('token');
-    if (!token) {
-      // Kullanıcı oturum açmamış, profil sayfasını görmeden Login ekranına yönlendir
+    if (user === null) {
       navigation.navigate('Login');
-    } else {
-      setIsLoggedIn(true);
+    } else if (user) {
+      // Kullanıcı adını ayarla (Supabase user metadata'dan veya e-postadan)
+      if (user.user_metadata && user.user_metadata.name) {
+        setUserName(user.user_metadata.name);
+      } else if (user.email) {
+        const nameFromEmail = user.email.split('@')[0];
+        setUserName(nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1));
+      }
+      
+      // E-posta adresini ayarla
+      if (user.email) {
+        setUserEmail(user.email);
+      }
     }
-  };
+  }, [user, navigation]);
 
   const stats = [
     { title: 'Reward Points', value: '360' },
@@ -31,35 +42,58 @@ const Profile = () => {
     { title: 'Bucket List', value: '473' },
   ];
 
+  // Çıkış işlemi için ayrı bir fonksiyon oluşturuyoruz
+  const handleLogout = async () => {
+    try {
+      setLoading(true);
+      await logout();
+      // useEffect içinde yönlendirme yapılacağı için burada navigation kullanmıyoruz
+    } catch (error) {
+      console.error('Çıkış yapılırken hata oluştu:', error);
+      setLoading(false);
+    }
+  };
+
   const menuItems = [
-    { icon: '👤', title: 'Profile', onPress: () => {} },
-    { icon: '🔖', title: 'Bookmarked', onPress: () => {} },
-    { icon: '✈️', title: 'Previous Trips', onPress: () => {} },
-    { icon: '⚙️', title: 'Settings', onPress: () => {} },
-    { icon: 'ℹ️', title: 'Version', onPress: () => {} },
-    { icon: '🚪', title: 'Logout', onPress: async () => {
-      await AsyncStorage.removeItem('token');
-      await AsyncStorage.removeItem('user');
-      setIsLoggedIn(false);
-      navigation.navigate('Login');
-    }},
+    { icon: '👤', title: 'Profili Düzenle', onPress: () => navigation.navigate('EditProfile') },
+    { icon: '🎭', title: 'Avatar Seç', onPress: () => navigation.navigate('AvatarSelector') },
+    { icon: '🔖', title: 'Favoriler', onPress: () => navigation.navigate('Favorite') },
+    { icon: '✈️', title: 'Önceki Seyahatler', onPress: () => {} },
+    { icon: '⚙️', title: 'Ayarlar', onPress: () => navigation.navigate('Settings') },
+    { icon: 'ℹ️', title: 'Versiyon', onPress: () => Alert.alert('Uygulama Versiyonu', 'Wanderland v1.0.0') },
+    { icon: '🚪', title: 'Çıkış Yap', onPress: handleLogout },
   ];
 
-  // Eğer kullanıcı oturum açmamışsa loading veya boş bir içerik göster
-  if (!isLoggedIn) {
-    return <View style={styles.loadingContainer}></View>;
+  // Avatar değiştirme ekranına yönlendirme
+  const handleAvatarChange = () => {
+    navigation.navigate('AvatarSelector');
+  };
+
+  // Kullanıcı yoksa Loading gösterme yerine direkt boş bir sayfa döndürüyoruz
+  // useEffect hook'u zaten yönlendirmeyi sağlayacak
+  if (!user) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF6B00" />
+      </View>
+    );
   }
 
   return (
     <ScrollView style={styles.container}>
       {/* Profile Info */}
       <View style={styles.profileInfo}>
-        <Image
-          source={require('../../assets/icon/avatar.png')}
-          style={styles.profileImage}
-        />
-        <Text style={styles.name}>Leonardo</Text>
-        <Text style={styles.email}>leonardo@gmail.com</Text>
+        <TouchableOpacity onPress={handleAvatarChange}>
+          <Avatar
+            size={100}
+            style={styles.profileImage}
+          />
+          <View style={styles.editAvatarBadge}>
+            <Text style={styles.editAvatarText}>Değiştir</Text>
+          </View>
+        </TouchableOpacity>
+        <Text style={styles.name}>{userName}</Text>
+        <Text style={styles.email}>{userEmail}</Text>
       </View>
 
       {/* Stats */}
@@ -79,12 +113,17 @@ const Profile = () => {
             key={index}
             style={styles.menuItem}
             onPress={item.onPress}
+            disabled={loading && item.title === 'Çıkış Yap'}
           >
             <View style={styles.menuItemContent}>
               <Text style={styles.menuIcon}>{item.icon}</Text>
               <Text style={styles.menuTitle}>{item.title}</Text>
             </View>
-            <Text style={styles.menuArrow}>{'>'}</Text>
+            {item.title === 'Çıkış Yap' && loading ? (
+              <ActivityIndicator size="small" color="#FF6B00" />
+            ) : (
+              <Text style={styles.menuArrow}>{'>'}</Text>
+            )}
           </TouchableOpacity>
         ))}
       </View>
@@ -114,18 +153,30 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   editButton: {
-    fontSize: 20,
+    fontSize: 16,
+    color: '#FF6B00',
   },
   profileInfo: {
     alignItems: 'center',
     marginTop: 20,
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
     borderWidth: 3,
-    borderColor: '#007AFF',
+    borderColor: '#FF6B00',
+  },
+  editAvatarBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#FF6B00',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  editAvatarText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   name: {
     fontSize: 24,
