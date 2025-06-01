@@ -3,6 +3,9 @@ import React from 'react';
 import CityGuideContent from '../components/CityGuide/CityGuideContent';
 import LoginScreen from '../screens/auth/LoginPage';
 import RegisterScreen from '../screens/auth/Register';
+import BlogDetailScreen from '../screens/blog/BlogDetailScreen';
+import CreateBlogScreen from '../screens/blog/CreateBlogScreen';
+import TravelBlogScreen from '../screens/blog/TravelBlogScreen';
 import Favorite from '../screens/main/Favorite';
 import MainScreen from '../screens/main/MainScreen';
 import Notifications from '../screens/main/Notifications';
@@ -53,6 +56,9 @@ export const AppNavigator = () => {
           headerShown: false
         }}
       />
+      <Stack.Screen name="BlogDetail" component={BlogDetailScreen} />
+      <Stack.Screen name="CreateBlog" component={CreateBlogScreen} />
+      <Stack.Screen name="TravelBlogScreen" component={TravelBlogScreen} />
     </Stack.Navigator>
   );
 }; 

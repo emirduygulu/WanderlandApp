@@ -14,6 +14,21 @@ export type RootStackParamList = {
   AvatarSelector: undefined;
   Notifications: undefined;
   Settings: undefined;
+  TravelBlogScreen: undefined;
+  BlogDetail: {
+    blog: {
+      id: number;
+      blogTitle: string;
+      blogContent: string;
+      yazar: string;
+      tarih: string;
+      kategori: string;
+      resim: string;
+      konum: string;
+      okunmaSuresi: string;
+    };
+  };
+  CreateBlog: undefined;
   CategoryDetail: {
     id: string;
     name: string;

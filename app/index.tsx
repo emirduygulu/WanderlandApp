@@ -1,10 +1,11 @@
 import { NavigationContainer } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AuthProvider } from '../src/context/AuthContext';
-import { AppNavigator } from '../src/navigation/AppNavigator';
 import 'react-native-url-polyfill/auto';
 import { supabase } from '../src/config/supabaseConfig';
+import { AuthProvider } from '../src/context/AuthContext';
+import { BlogProvider } from '../src/context/BlogContext';
+import { AppNavigator } from '../src/navigation/AppNavigator';
 
 export default function App() {
   // Uygulama başladığında Supabase'i kontrol edilmeli
@@ -29,9 +30,11 @@ export default function App() {
   return (
     <NavigationContainer>
       <AuthProvider>
-        <SafeAreaProvider>
-          <AppNavigator />
-        </SafeAreaProvider>
+        <BlogProvider>
+          <SafeAreaProvider>
+            <AppNavigator />
+          </SafeAreaProvider>
+        </BlogProvider>
       </AuthProvider>
     </NavigationContainer>
   );

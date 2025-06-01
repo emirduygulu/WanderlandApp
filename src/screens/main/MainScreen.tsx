@@ -10,6 +10,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View
 } from "react-native";
 import CityGuideArea from "../../components/CityGuide/CityGuideArea";
@@ -18,8 +19,10 @@ import DiscoverPlacesArea from "../../components/DiscoverArea/DiscoverPlacesArea
 import Category from "../../components/ExploreCategory/Category";
 import Header from "../../components/Header";
 import Input from "../../components/Search/Input";
+import BlogCard from "../../components/TravelBlog/BlogCard";
 import { Colors } from "../../constants/Colors";
 import { useAuth } from "../../context/AuthContext";
+import { useBlog } from "../../context/BlogContext";
 import { RootStackParamList } from "../../navigation/types";
 import Favorite from "./Favorite";
 import Profile from "./Profile";
@@ -53,6 +56,7 @@ const HomeContent = () => {
   const [selectedDiscoverCategory, setSelectedDiscoverCategory] = useState('Hepsi');
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuth();
+  const { blogs } = useBlog();
   const [userName, setUserName] = useState('Wanderlander');
   const [userEmail, setUserEmail] = useState('');
   
@@ -87,6 +91,16 @@ const HomeContent = () => {
     );
   };
 
+  const handleBlogPress = (blog: any) => {
+    console.log('Blog selected:', blog.blogTitle);
+    navigation.navigate('BlogDetail', { blog });
+  };
+
+  const handleViewAllBlogs = () => {
+    console.log('View all blogs pressed');
+    navigation.navigate('TravelBlogScreen');
+  };
+
   return (
     <ScrollView style={styles.homeContent} showsVerticalScrollIndicator={false}>
       <Header 
@@ -108,6 +122,30 @@ const HomeContent = () => {
         
         <CityGuideArea />
         <Category />
+        
+        {/* Son Blog Yazıları */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Son Blog Yazıları</Text>
+            <TouchableOpacity onPress={handleViewAllBlogs}>
+              <Text style={styles.viewAllText}>Tümünü Gör</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.blogScrollContainer}
+          >
+            {blogs.slice(0, 3).map((blog, index) => (
+              <View key={blog.id} style={[styles.blogCardWrapper, index === 0 && styles.firstBlogCard]}>
+                <BlogCard 
+                  blog={blog} 
+                  onPress={() => handleBlogPress(blog)}
+                />
+              </View>
+            ))}
+          </ScrollView>
+        </View>
       </View>
       <View style={styles.spacer} />
     </ScrollView>
@@ -297,6 +335,12 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     paddingHorizontal: 16,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -313,6 +357,21 @@ const styles = StyleSheet.create({
   discoverSection: {
     marginTop: 20,
     paddingHorizontal: 16,
+  },
+  viewAllText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: Colors.light.tint,
+  },
+  blogScrollContainer: {
+    paddingLeft: 0,
+  },
+  blogCardWrapper: {
+    width: 300,
+    marginRight: 16,
+  },
+  firstBlogCard: {
+    marginLeft: 0,
   },
 });
 
