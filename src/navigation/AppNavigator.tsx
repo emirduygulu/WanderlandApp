@@ -18,6 +18,8 @@ import OnboardingScreen from '../screens/OnBoarding';
 import AvatarSelector from '../screens/profile/AvatarSelector';
 import EditProfile from '../screens/profile/EditProfile';
 import Settings from '../screens/profile/Settings';
+import SearchDetailScreen from '../screens/search/SearchDetailScreen';
+import SearchResultsScreen from '../screens/search/SearchResultsScreen';
 import SplashScreen from '../screens/SplashScreen';
 import { RootStackParamList } from './types';
 
@@ -34,6 +36,8 @@ export const AppNavigator = () => {
       <Stack.Screen name="Main" component={MainScreen} />
       <Stack.Screen name="Favorite" component={Favorite} />
       <Stack.Screen name="Search" component={Search} />
+      <Stack.Screen name="SearchResults" component={SearchResultsScreen} />
+      <Stack.Screen name="SearchDetail" component={SearchDetailScreen} />
       <Stack.Screen name="SmartChat" component={SmartChat} />
       <Stack.Screen name="Profile" component={Profile} />
       <Stack.Screen name="EditProfile" component={EditProfile} />

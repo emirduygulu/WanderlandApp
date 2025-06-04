@@ -1,6 +1,7 @@
-import { searchFSQPlaces, getFSQPlaceDetails } from './Foursquare';
-import { getOTMPlaceDetails } from './OneTripMap';
+import { getFSQPlaceDetails } from './Foursquare';
 import { getDefaultLocation } from './Location';
+import { getOTMPlaceDetails } from './OneTripMap';
+import { fetchCityImage } from './Unsplash';
 import { PlaceItem } from './categoryService';
 
 export interface PlaceDetail extends PlaceItem {
@@ -19,10 +20,6 @@ export interface PlaceDetail extends PlaceItem {
   address?: string;
   isFavorite?: boolean;
 }
-
-const getUnsplashKey = () => {
-  return process.env.UNSPLASH_ACCESS_KEY || '';
-};
 
 /**
  * Yer/landmark detayını getir
@@ -43,7 +40,7 @@ export const fetchPlaceDetail = async (placeId: string, placeName?: string): Pro
     const name = fsqDetails?.name || placeName || '';
     const location = fsqDetails?.location?.locality || fsqDetails?.location?.region || 'Bilinmeyen Konum';
     
-    // Unsplash'dan görseller al
+    // Basit görsel al
     const images = await fetchPlaceImages(name, location, 5);
     
     // Mesafe hesapla
@@ -60,8 +57,7 @@ export const fetchPlaceDetail = async (placeId: string, placeName?: string): Pro
     let otmDetails = null;
     try {
       if (fsqDetails?.geocodes?.main) {
-        // XID parametresi göndermekteyiz, koordinat değil
-        const xid = `Q${Math.floor(Math.random() * 1000000)}`; // Örnek olarak rastgele bir XID oluşturuyoruz
+        const xid = `Q${Math.floor(Math.random() * 1000000)}`;
         otmDetails = await getOTMPlaceDetails(xid);
       }
     } catch (error) {
@@ -73,11 +69,11 @@ export const fetchPlaceDetail = async (placeId: string, placeName?: string): Pro
       id: placeId || `place_${Date.now()}`,
       name: name,
       location: location,
-      imageUrl: images[0]?.uri || 'https://source.unsplash.com/random/800x600/?place',
-      rating: fsqDetails?.rating ? fsqDetails.rating / 2 : 4.5, // 10 üzerinden 5'e çevir
+      imageUrl: images[0]?.uri || await fetchCityImage(name),
+      rating: fsqDetails?.rating ? fsqDetails.rating / 2 : 4.5,
       reviews: fsqDetails?.stats?.total_ratings || Math.floor(Math.random() * 500) + 100,
       distance: `${distance.toFixed(0)} km`,
-      amenities: Math.floor(Math.random() * 50) + 10, // Rastgele değer
+      amenities: Math.floor(Math.random() * 50) + 10,
       description: otmDetails?.wikipedia_extracts?.text || 
                   `${name}, ${location} bölgesinde bulunan popüler bir yerdir. Ziyaretçilere benzersiz deneyimler sunar.`,
       images: images,
@@ -98,70 +94,55 @@ export const fetchPlaceDetail = async (placeId: string, placeName?: string): Pro
 };
 
 /**
- * Yer için Unsplash'dan görseller al
+ * Yer için basit görseller al
  */
 const fetchPlaceImages = async (placeName: string, location: string, count: number = 5): Promise<Array<{id: string, uri: string}>> => {
   try {
-    const UNSPLASH_ACCESS_KEY = getUnsplashKey();
-        if (!UNSPLASH_ACCESS_KEY) {
-      console.warn('Unsplash API anahtarı ayarlanmamış. Placeholder görseller kullanılacak.');
-      return generatePlaceholderImages(placeName, location, count);
-    }
+    const images = [];
     
-    // Önce yer ismi + konum ile ara
-    const query = `${placeName} ${location}`;
-    const response = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=${count}`
-    );
-
-    const data = await response.json();
+    // Ana görsel
+    const mainImage = await fetchCityImage(`${placeName} ${location}`);
+    images.push({ 
+      id: `main_${placeName}`, 
+      uri: mainImage 
+    });
     
-    // Eğer yeterli sonuç yoksa sadece yer ismi ile tekrar ara
-    if (!data.results || data.results.length < 2) {
-      const fallbackResponse = await fetch(
-        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(placeName)}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=${count}`
-      );
-      const fallbackData = await fallbackResponse.json();
-      
-      if (fallbackData.results && fallbackData.results.length > 0) {
-        return fallbackData.results.map((img: any, index: number) => ({
-          id: img.id || `img_${index}`,
-          uri: img.urls.regular
-        }));
+    // Alternatif görseller
+    const queries = [placeName, location, 'Turkey landmark', 'Turkey travel'];
+    
+    for (let i = 0; i < Math.min(queries.length, count - 1); i++) {
+      try {
+        const imageUrl = await fetchCityImage(queries[i]);
+        images.push({ 
+          id: `alt_${i}_${placeName}`, 
+          uri: imageUrl 
+        });
+      } catch (error) {
+        console.log(`Alternatif görsel ${i + 1} hatası:`, error);
       }
     }
     
-    // İlk sorgudan sonuçları dön
-    if (data.results && data.results.length > 0) {
-      return data.results.map((img: any, index: number) => ({
-        id: img.id || `img_${index}`,
-        uri: img.urls.regular
-      }));
+    // Eksik görseller için varsayılan
+    while (images.length < count) {
+      images.push({ 
+        id: `fallback_${images.length}`, 
+        uri: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80'
+      });
     }
     
-    // Hiçbir sonuç bulunamazsa varsayılan görsel dizisi döndür
-    return generatePlaceholderImages(placeName, location, count);
+    return images.slice(0, count);
   } catch (error) {
-    console.error('Unsplash API error:', error);
-    return generatePlaceholderImages(placeName, location, 2);
+    console.error('Image fetch error:', error);
+    // Hata durumunda varsayılan görseller
+    const fallbackImages = [];
+    for (let i = 0; i < count; i++) {
+      fallbackImages.push({ 
+        id: `error_${i}`, 
+        uri: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80'
+      });
+    }
+    return fallbackImages;
   }
-};
-
-/**
- * Placeholder görseller oluştur
- */
-const generatePlaceholderImages = (placeName: string, location: string, count: number): Array<{id: string, uri: string}> => {
-  const images = [];
-  
-  images.push({ id: 'default1', uri: `https://source.unsplash.com/random/800x600/?${encodeURIComponent(placeName)}` });
-  images.push({ id: 'default2', uri: `https://source.unsplash.com/random/800x600/?${encodeURIComponent(location)},travel` });
-  
-  // İstenen sayıda görsel oluştur
-  for (let i = 3; i <= count; i++) {
-    images.push({ id: `default${i}`, uri: `https://source.unsplash.com/random/800x600/?tourism,travel` });
-  }
-  
-  return images.slice(0, count); // İstenen sayıda görsel döndür
 };
 
 /**

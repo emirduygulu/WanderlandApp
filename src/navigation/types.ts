@@ -1,3 +1,5 @@
+import { SearchResult } from '../services/SearchService';
+
 // Navigation types
 export type RootStackParamList = {
   Splash: undefined;
@@ -8,6 +10,15 @@ export type RootStackParamList = {
   Main: undefined;
   Favorite: undefined;
   Search: undefined;
+  SearchResults: {
+    query: string;
+    results: SearchResult[];
+    category?: string;
+    isCategorySearch?: boolean;
+  };
+  SearchDetail: {
+    result: SearchResult;
+  };
   SmartChat: undefined;
   Profile: undefined;
   EditProfile: undefined;

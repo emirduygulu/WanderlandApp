@@ -1,124 +1,183 @@
-import { UNSPLASH_ACCESS_KEY } from '@env';
+// Basitleştirilmiş Unsplash servisi
+
+// Türkiye'deki popüler yerler için sabit fotoğraflar - GELİŞTİRİLMİŞ
+const TURKISH_PLACE_PHOTOS = {
+  // Anıtkabir ve Ankara
+  'anitkabir': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&q=80',
+  'anıtkabir': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&q=80',
+  'ataturk mausoleum': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&q=80',
+  'ankara': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&q=80',
+  
+  // İstanbul - Galata bölgesi için özel fotoğraflar
+  'galata köprüsü': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&q=80', // Gerçek Galata Köprüsü fotoğrafı
+  'galata koprüsu': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&q=80',
+  'galata bridge': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&q=80',
+  'galata kulesi': 'https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?w=800&q=80', // Galata Kulesi için ayrı fotoğraf
+  'galata tower': 'https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?w=800&q=80',
+  
+  // Diğer İstanbul yerler
+  'ayasofya': 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=800&q=80',
+  'hagia sophia': 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=800&q=80',
+  'sultanahmet': 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80', // Sultanahmet Camii
+  'sultanahmet camii': 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80',
+  'blue mosque': 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80',
+  'topkapı': 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=800&q=80',
+  'topkapi': 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=800&q=80',
+  'topkapi palace': 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=800&q=80',
+  'bosphorus': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&q=80',
+  'boğaziçi': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&q=80',
+  'istanbul': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&q=80',
+  
+  // Kapadokya
+  'kapadokya': 'https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=800&q=80',
+  'cappadocia': 'https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=800&q=80',
+  'göreme': 'https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=800&q=80',
+  'goreme': 'https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=800&q=80',
+  
+  // Diğer turistik yerler
+  'pamukkale': 'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&q=80',
+  'efes': 'https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=800&q=80',
+  'ephesus': 'https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=800&q=80',
+  'nemrut': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&q=80',
+  'mount nemrut': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&q=80',
+  
+  // Şehirler
+  'izmir': 'https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=800&q=80',
+  'antalya': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+  'bodrum': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+  'marmaris': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80'
+};
+
+// Varsayılan fotoğraflar
+const DEFAULT_PHOTOS = {
+  general: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80',
+  landmark: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80',
+  city: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&q=80',
+  mosque: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80',
+  palace: 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=800&q=80',
+  bridge: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&q=80'
+};
+
+// Geliştirilmiş arama terimi normalize etme
+const normalizeSearchTerm = (term) => {
+  if (!term) return '';
+  return term
+    .toLowerCase()
+    .trim()
+    .replace(/ı/g, 'i')
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ş/g, 's')
+    .replace(/ö/g, 'o')
+    .replace(/ç/g, 'c')
+    .replace(/\s+/g, ' ') // Birden fazla boşluğu tek boşluk yap
+    .replace(/[^\w\s]/g, ''); // Noktalama işaretlerini kaldır
+};
 
 /**
- * Şehir veya landmark için görsel almak için geliştirilmiş fonksiyon
- * @param {string} query - Arama sorgusu
- * @param {Object} options - Ek ayarlar
- * @returns {Promise<string|null>} - Görsel URL'i veya null
+ * Geliştirilmiş resim getirme fonksiyonu
  */
 export const fetchImageByQuery = async (query, options = {}) => {
-  const { 
-    perPage = 3, 
-    orientation = 'landscape',
-    contentFilter = 'high',
-    quality = 'regular'
-  } = options;
-  
   try {
-    console.log(`"${query}" sorgusu için Unsplash görseli getiriliyor`);
+    console.log(`🔍 Fotoğraf aranıyor: "${query}"`);
     
-    // API isteği yapılırken orientation ve content_filter parametrelerini ekle
-    const response = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=${perPage}&orientation=${orientation}&content_filter=${contentFilter}`
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error(`Unsplash API hatası (${response.status}):`, errorData);
-      throw new Error(`Unsplash API hatası: ${response.status}`);
+    // Önce Türkçe yerler listesinde ara
+    const normalizedQuery = normalizeSearchTerm(query);
+    
+    // 1. Doğrudan eşleşme
+    if (TURKISH_PLACE_PHOTOS[normalizedQuery]) {
+      console.log(`✅ Doğrudan eşleşme bulundu: "${normalizedQuery}"`);
+      return TURKISH_PLACE_PHOTOS[normalizedQuery];
     }
-
-    const data = await response.json();
     
-    // Sonuçları logla
-    console.log(`"${query}" için Unsplash sonuçları: ${data.results ? data.results.length : 0} görsel bulundu`);
-
-    if (data.results && data.results.length > 0) {
-      // Birden fazla sonuç varsa en iyi eşleşmeyi seçmeye çalış
-      const bestMatch = data.results.find(result => 
-        result.description && result.description.toLowerCase().includes(query.toLowerCase())
-      ) || data.results[0];
+    // 2. Kısmi eşleşme - daha akıllı
+    for (const [key, url] of Object.entries(TURKISH_PLACE_PHOTOS)) {
+      // Galata Köprüsü için özel kontrol
+      if (key.includes('galata') && normalizedQuery.includes('galata')) {
+        if (key.includes('kopru') && normalizedQuery.includes('kopru')) {
+          console.log(`🌉 Galata Köprüsü eşleşmesi: "${key}"`);
+          return url;
+        }
+        if (key.includes('bridge') && (normalizedQuery.includes('bridge') || normalizedQuery.includes('kopru'))) {
+          console.log(`🌉 Galata Bridge eşleşmesi: "${key}"`);
+          return url;
+        }
+        if (key.includes('kule') && normalizedQuery.includes('kule')) {
+          console.log(`🗼 Galata Kulesi eşleşmesi: "${key}"`);
+          return url;
+        }
+      }
       
-      // quality parametresine göre URL'i döndür (regular, full, raw, small)
-      return bestMatch.urls[quality] || bestMatch.urls.regular;
-    } else {
-      console.log(`"${query}" sorgusu için Unsplash sonucu bulunamadı`);
-      return null;
+      // Genel kısmi eşleşme
+      if (normalizedQuery.includes(key) || key.includes(normalizedQuery)) {
+        console.log(`🎯 Kısmi eşleşme bulundu: "${key}" -> "${normalizedQuery}"`);
+        return url;
+      }
     }
+    
+    // 3. Kelime bazlı eşleşme
+    const queryWords = normalizedQuery.split(' ');
+    for (const [key, url] of Object.entries(TURKISH_PLACE_PHOTOS)) {
+      const keyWords = key.split(' ');
+      const matchCount = queryWords.filter(word => 
+        keyWords.some(keyWord => keyWord.includes(word) || word.includes(keyWord))
+      ).length;
+      
+      if (matchCount >= Math.min(queryWords.length, keyWords.length) / 2) {
+        console.log(`📝 Kelime eşleşmesi bulundu: "${key}" (${matchCount} kelime)`);
+        return url;
+      }
+    }
+    
+    // 4. Varsayılan fotoğraf döndür
+    console.log(`⚡ Varsayılan fotoğraf kullanılıyor: "${query}"`);
+    return DEFAULT_PHOTOS.general;
+    
   } catch (error) {
-    console.error(`"${query}" sorgusu için Unsplash API Hatası:`, error);
-    // API hatası durumunda null döndür, uygulama fallback mekanizmasını kullanacak
-    return null;
+    console.error('❌ Fotoğraf getirme hatası:', error);
+    return DEFAULT_PHOTOS.general;
   }
 };
 
-// Şehir görseli almak için (önceki sürüm yerine geçecek)
+// Şehir görseli
 export const fetchCityImage = async (city) => {
   try {
-    // Şehir görselleri için optimize edilmiş sorgu
-    const imageUrl = await fetchImageByQuery(`${city} city skyline`, {
-      orientation: 'landscape',
-      perPage: 3
-    });
-    
-    if (imageUrl) return imageUrl;
-    
-    // Fallback: Sadece şehir adıyla dene
-    return await fetchImageByQuery(city, { perPage: 3 });
+    console.log(`🏙️ Şehir görseli isteniyor: "${city}"`);
+    return await fetchImageByQuery(city);
   } catch (error) {
-    console.error('Unsplash Şehir Görseli Hatası:', error);
-    return null;
+    console.error('❌ Şehir görseli hatası:', error);
+    return DEFAULT_PHOTOS.city;
   }
 };
 
-// Landmark için görsel getir (şehir adı + landmark adı kombinasyonu)
+// Landmark görseli
 export const fetchLandmarkImage = async (city, landmarkName) => {
   try {
-    // İlk deneme: Landmark + şehir adı
-    const query = `${landmarkName} ${city} landmark`;
-    const imageUrl = await fetchImageByQuery(query, {
-      orientation: 'landscape',
-      perPage: 3,
-      quality: 'regular'
-    });
-    
-    if (imageUrl) return imageUrl;
-    
-    // İkinci deneme: Sadece landmark adı
-    const fallbackImageUrl = await fetchImageByQuery(`${landmarkName} landmark`, {
-      perPage: 3
-    });
-    
-    if (fallbackImageUrl) return fallbackImageUrl;
-    
-    // Son çare: Genel turistik yer görseli
-    return await fetchImageByQuery(`${city} tourist attraction`, {
-      perPage: 1
-    });
+    console.log(`🏛️ Landmark görseli isteniyor: "${landmarkName}" - "${city}"`);
+    const query = `${landmarkName} ${city}`;
+    return await fetchImageByQuery(query);
   } catch (error) {
-    console.error('Unsplash Turistik Yer Görseli Hatası:', error);
-    return null;
+    console.error('❌ Landmark görseli hatası:', error);
+    return DEFAULT_PHOTOS.landmark;
   }
 };
 
-// Landmark görsellerini ön yükleme fonksiyonu (performans için)
+// Toplu görsel yükleme
 export const preloadLandmarkImages = async (landmarks) => {
-  const imagePromises = {};
+  const results = {};
   
   for (const city in landmarks) {
-    imagePromises[city] = [];
-    
-    for (const landmark of landmarks[city]) {
-      const promise = fetchLandmarkImage(city, landmark.name);
-      imagePromises[city].push(promise);
+    try {
+      results[city] = [];
+      for (const landmark of landmarks[city]) {
+        const imageUrl = await fetchLandmarkImage(city, landmark.name);
+        results[city].push(imageUrl);
+      }
+    } catch (error) {
+      console.error(`❌ ${city} için görsel yükleme hatası:`, error);
+      results[city] = [DEFAULT_PHOTOS.landmark];
     }
-  }
-  
-  // Tüm promise'ları bekle
-  const results = {};
-  for (const city in imagePromises) {
-    results[city] = await Promise.all(imagePromises[city]);
   }
   
   return results;
-};
+}; 

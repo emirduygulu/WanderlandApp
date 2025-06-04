@@ -2,6 +2,7 @@ import { getFSQPlaceDetails, searchFSQPlaces, searchPopularLandmarks } from './F
 import { getCoordinatesByCity, getOTMPlaceDetails, searchOTMPlaces } from './OneTripMap';
 import { fetchCityImage } from './Unsplash';
 
+
 // Define type for landmark data from PopulerLandmarks.js
 interface PopularLandmark {
   name: string;
@@ -270,7 +271,7 @@ const enrichDescription = (placeName: string, cityName: string, category?: strin
   
   // API'den landmark açıklaması almak için aşağıdaki fonksiyon kullanılabilir
   // Bu bir örnek implementasyondur ve gerçek bir API çağrısı yapılmamaktadır
-  // Gerçek uygulamada burada bir API çağrısı yapılabilir
+  // Gerçek uygulamada burada Wikipedia, Google Places veya başka bir API kullanılabilir
   const tryGetDescriptionFromAPI = async (name: string, city: string, cat: string | undefined): Promise<string | null> => {
     // Bu fonksiyon, gerçek bir API çağrısı yaparak landmark açıklaması almayı simüle eder
     // Örnek olarak bu fonksiyon şimdilik boş bırakılmıştır
