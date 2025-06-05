@@ -24,7 +24,7 @@ import { Colors } from "../../constants/Colors";
 import { useAuth } from "../../context/AuthContext";
 import { useBlog } from "../../context/BlogContext";
 import { RootStackParamList } from "../../navigation/types";
-import Favorite from "./Favorite";
+import FavoritesScreen from "../favorite/FavoritesScreen";
 import Profile from "./Profile";
 import Search from "./Search";
 import SmartChat from "./SmartChat";
@@ -212,11 +212,7 @@ const MainScreen = () => {
             ),
           }}
         >
-          {() => (
-            <TabScreenWrapper title="Favoriler">
-              <Favorite />
-            </TabScreenWrapper>
-          )}
+          {() => <FavoritesScreen />}
         </Tab.Screen>
         <Tab.Screen
           name="SearchTab"
@@ -230,11 +226,7 @@ const MainScreen = () => {
             ),
           }}
         >
-          {() => (
-            <TabScreenWrapper title="Arama">
-              <Search />
-            </TabScreenWrapper>
-          )}
+          {() => <Search />}
         </Tab.Screen>
         <Tab.Screen
           name="SmartChatTab"
@@ -248,11 +240,7 @@ const MainScreen = () => {
             ),
           }}
         >
-          {() => (
-            <TabScreenWrapper title="SmartTraveller">
-              <SmartChat />
-            </TabScreenWrapper>
-          )}
+          {() => <SmartChat />}
         </Tab.Screen>
         <Tab.Screen
           name="ProfileTab"
@@ -275,11 +263,7 @@ const MainScreen = () => {
             },
           }}
         >
-          {() => (
-            <TabScreenWrapper title="Profil">
-              <Profile />
-            </TabScreenWrapper>
-          )}
+          {() => <Profile />}
         </Tab.Screen>
       </Tab.Navigator>
     </View>

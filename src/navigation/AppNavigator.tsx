@@ -6,7 +6,7 @@ import RegisterScreen from '../screens/auth/Register';
 import BlogDetailScreen from '../screens/blog/BlogDetailScreen';
 import CreateBlogScreen from '../screens/blog/CreateBlogScreen';
 import TravelBlogScreen from '../screens/blog/TravelBlogScreen';
-import Favorite from '../screens/main/Favorite';
+import FavoritesScreen from '../screens/favorite/FavoritesScreen';
 import MainScreen from '../screens/main/MainScreen';
 import Notifications from '../screens/main/Notifications';
 import Profile from '../screens/main/Profile';
@@ -34,7 +34,7 @@ export const AppNavigator = () => {
       <Stack.Screen name="Register" component={RegisterScreen} />
       
       <Stack.Screen name="Main" component={MainScreen} />
-      <Stack.Screen name="Favorite" component={Favorite} />
+      <Stack.Screen name="Favorite" component={FavoritesScreen} />
       <Stack.Screen name="Search" component={Search} />
       <Stack.Screen name="SearchResults" component={SearchResultsScreen} />
       <Stack.Screen name="SearchDetail" component={SearchDetailScreen} />

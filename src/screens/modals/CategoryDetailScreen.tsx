@@ -1,6 +1,6 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import CategoryContent from '../../components/ExploreCategory/CategoryContent';
 import { RootStackParamList } from '../../navigation/types';
@@ -14,6 +14,11 @@ const CategoryDetailScreen = () => {
   
   // Route'dan kategori ID'sini al
   const { id, name } = route.params;
+  
+  useEffect(() => {
+    console.log('📱 CategoryDetailScreen - Kategori ID:', id);
+    console.log('📱 CategoryDetailScreen - Kategori adı:', name);
+  }, [id, name]);
   
   const handleBack = () => {
     navigation.goBack();

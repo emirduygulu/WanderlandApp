@@ -10,6 +10,24 @@ type NavigationProp = StackNavigationProp<RootStackParamList, 'CityGuideContent'
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = width * 0.6;
 
+/**
+ * Görsel source'unu belirle (local asset veya remote URL)
+ */
+const getImageSource = (imageUrl: any) => {
+  // Eğer number ise (require() sonucu), local asset
+  if (typeof imageUrl === 'number') {
+    return imageUrl;
+  }
+  
+  // Eğer string ise, remote URL
+  if (typeof imageUrl === 'string') {
+    return { uri: imageUrl };
+  }
+  
+  // Fallback
+  return require('../../assets/city/placeholder.png');
+};
+
 const CityGuideArea = () => {
   const navigation = useNavigation<NavigationProp>();
   const [cities, setCities] = useState<City[]>([]);
@@ -26,6 +44,10 @@ const CityGuideArea = () => {
       setError(null);
       const citiesData = await fetchPopularCities();
       setCities(citiesData);
+      console.log('🏙️ Loaded cities in CityGuideArea:', citiesData.map(c => ({ 
+        name: c.name, 
+        imageType: typeof c.imageUrl 
+      })));
     } catch (err) {
       console.error('Error loading cities:', err);
       setError('Şehir verileri yüklenirken bir hata oluştu.');
@@ -81,9 +103,15 @@ const CityGuideArea = () => {
           >
             <View style={styles.cityImageContainer}>
               <Image 
-                source={{ uri: city.imageUrl }} 
+                source={getImageSource(city.imageUrl)}
                 style={styles.cityImage}
                 defaultSource={require('../../assets/city/placeholder.png')}
+                onError={(error) => {
+                  console.log(`❌ Image error for ${city.name}:`, error.nativeEvent.error);
+                }}
+                onLoad={() => {
+                  console.log(`✅ Image loaded for ${city.name}`);
+                }}
               />
             </View>
             <View style={styles.cityInfo}>

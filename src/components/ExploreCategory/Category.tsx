@@ -1,6 +1,8 @@
-import { View, StyleSheet, Text, TouchableOpacity, Image, ScrollView } from 'react-native'
-import React from 'react'
 import { useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+const { width } = Dimensions.get('window');
 
 const Category = () => {
   const navigation = useNavigation();
@@ -29,33 +31,41 @@ const Category = () => {
   ];
 
   // Kategori seçildiğinde navigasyon ile detay sayfasına git
-  const handleCategorySelect = (categoryId: string) => {
+  const handleCategorySelect = (categoryId: string, categoryName: string) => {
     // @ts-ignore (Navigation tipini basitleştirmek için)
-    navigation.navigate('CategoryDetail', { categoryId });
+    navigation.navigate('CategoryDetail', { 
+      id: categoryId,
+      name: categoryName 
+    });
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Kategori Keşfet</Text>
+      <Text style={styles.title}>Mevsimsel Şehir Önerileri</Text>
+      <Text style={styles.subtitle}>Mevsimlere göre dünyanın en güzel şehirlerini keşfedin</Text>
       
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContainer}
-      >
-        {categories.map((category) => (
-          <TouchableOpacity 
-            key={category.id} 
-            style={styles.categoryItem}
-            onPress={() => handleCategorySelect(category.id)}
-          >
-            <View style={styles.iconContainer}>
-              <Image source={category.icon} style={styles.icon} />
-            </View>
-            <Text style={styles.categoryName}>{category.name}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View style={styles.categoriesWrapper}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContainer}
+          snapToInterval={width / 3.5}
+          decelerationRate="fast"
+        >
+          {categories.map((category) => (
+            <TouchableOpacity 
+              key={category.id} 
+              style={styles.categoryItem}
+              onPress={() => handleCategorySelect(category.id, category.name)}
+            >
+              <View style={styles.iconContainer}>
+                <Image source={category.icon} style={styles.icon} />
+              </View>
+              <Text style={styles.categoryName}>{category.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
     </View>                     
   )
 }
@@ -66,41 +76,54 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "white",
     paddingVertical: 20,
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 8,
     color: '#333',
     paddingHorizontal: 5,
   },
-  scrollContainer: {
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 16,
     paddingHorizontal: 5,
-    paddingBottom: 10,
+  },
+  categoriesWrapper: {
+    overflow: 'visible',
+  },
+  scrollContainer: {
+    paddingVertical: 10,
+    paddingLeft: 5,
+    paddingRight: 20,
   },
   categoryItem: {
-    width: 90,
+    width: width / 3.5,
+    height: 110,
     backgroundColor: 'white',
-    borderRadius: 20,
-    marginRight: 15,
-    padding: 15,
+    borderRadius: 16,
+    marginRight: 12,
+    padding: 12,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
     borderWidth: 1,
     borderColor: '#f0f0f0',
   },
   iconContainer: {
-    width: 32,
-    height: 32,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
+    backgroundColor: '#f7f7f7',
+    borderRadius: 22,
   },
   icon: {
     width: 32,
@@ -108,8 +131,9 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   categoryName: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     color: '#333',
+    textAlign: 'center',
   }
 });

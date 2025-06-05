@@ -10,7 +10,7 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 import { RootStackParamList } from '../../navigation/types';
 
@@ -41,7 +41,7 @@ const BlogDetailScreen = () => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Hero Image */}
         <View style={styles.imageContainer}>
-          <Image source={{ uri: blog.resim }} style={styles.heroImage} />
+          <Image source={blog.resim} style={styles.heroImage} />
           
           {/* Header Overlay */}
           <View style={styles.headerOverlay}>

@@ -4,17 +4,17 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
 import {
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useBlog } from '../../context/BlogContext';
@@ -202,7 +202,7 @@ const CreateBlogScreen = () => {
         blogContent: content.trim(),
         yazar: authorName,
         kategori: category,
-        resim: selectedImage || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=500',
+        resim: selectedImage || require('../../assets/antalya.jpg'),
         konum: location.trim(),
         additionalImages: additionalImages.length > 0 ? additionalImages : undefined,
       };

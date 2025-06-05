@@ -6,7 +6,7 @@ export const blogData = [
     yazar: "Ayşe Demir",
     tarih: "2024-01-15",
     kategori: "Doğa & Tarih",
-    resim: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500",
+    resim: require('../assets/kapadokya.jpg'),
     konum: "Kapadokya, Nevşehir",
     okunmaSuresi: "5 dk"
   },
@@ -17,7 +17,7 @@ export const blogData = [
     yazar: "Mehmet Yılmaz",
     tarih: "2024-01-20",
     kategori: "Deniz & Tarih",
-    resim: "https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=500",
+    resim: require('../assets/antalya.jpg'),
     konum: "Antalya",
     okunmaSuresi: "4 dk"
   },
@@ -28,7 +28,7 @@ export const blogData = [
     yazar: "Fatma Özkan",
     tarih: "2024-01-25",
     kategori: "Kültür & Macera",
-    resim: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500",
+    resim: require('../assets/doguekspress.webp'),
     konum: "Kars",
     okunmaSuresi: "6 dk"
   },
@@ -39,7 +39,7 @@ export const blogData = [
     yazar: "Can Erdoğan",
     tarih: "2024-02-01",
     kategori: "Deniz & Relaxation",
-    resim: "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=500",
+    resim: require('../assets/bodrum.jpg'),
     konum: "Bodrum, Muğla",
     okunmaSuresi: "4 dk"
   },
@@ -50,7 +50,7 @@ export const blogData = [
     yazar: "Zeynep Kaya",
     tarih: "2024-02-05",
     kategori: "Doğa & Wellness",
-    resim: "https://images.unsplash.com/photo-1549813069-f95e44d7f498?w=500",
+    resim: require('../assets/pamukkale.jpg'),
     konum: "Pamukkale, Denizli",
     okunmaSuresi: "3 dk"
   }

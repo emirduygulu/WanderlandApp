@@ -15,8 +15,8 @@ const ContentScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [placeData, setPlaceData] = useState<PlaceDetail | null>(null);
   
-  // Route params'dan id veya item bilgisini al
-  const { itemId, item } = route.params || {};
+  // Route params'dan item bilgisini al
+  const { item } = route.params;
 
   useEffect(() => {
     // Başlığı ayarla
@@ -39,14 +39,11 @@ const ContentScreen = () => {
         // API'den veri çek
         let placeDetail: PlaceDetail | null = null;
         
-        if (itemId) {
-          // ID varsa, direkt olarak ID ile çağır
-          placeDetail = await fetchPlaceDetail(itemId);
-        } else if (item) {
-          // Yoksa item üzerinden ID veya isim ile çağır
+        if (item) {
+          // Item üzerinden ID veya isim ile çağır
           placeDetail = await fetchPlaceDetail(item.id, item.name);
         } else {
-          // Hem ID hem item yoksa örnek veri göster
+          // Item yoksa örnek veri göster
           placeDetail = sampleData;
         }
         
@@ -64,7 +61,7 @@ const ContentScreen = () => {
     };
 
     loadPlaceDetails();
-  }, [itemId, item, navigation]);
+  }, [item, navigation]);
 
   if (loading) {
     return (

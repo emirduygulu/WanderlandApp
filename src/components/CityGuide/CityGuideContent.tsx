@@ -3,22 +3,40 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Dimensions,
-  FlatList,
-  Image,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Dimensions,
+    FlatList,
+    Image,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { RootStackParamList } from '../../navigation/types';
 import { City, Landmark, fetchCityDetails } from '../../services/CityGuideService';
 
 type CityGuideContentRouteProp = RouteProp<RootStackParamList, 'CityGuideContent'>;
 type CityGuideContentNavigationProp = StackNavigationProp<RootStackParamList, 'CityGuideContent'>;
+
+/**
+ * Görsel source'unu belirle (local asset veya remote URL)
+ */
+const getImageSource = (imageUrl: any) => {
+  // Eğer number ise (require() sonucu), local asset
+  if (typeof imageUrl === 'number') {
+    return imageUrl;
+  }
+  
+  // Eğer string ise, remote URL  
+  if (typeof imageUrl === 'string') {
+    return { uri: imageUrl };
+  }
+  
+  // Fallback
+  return require('../../assets/city/placeholder.png');
+};
 
 // Ekran genişliğini al - responsive tasarım için
 const screenWidth = Dimensions.get('window').width;
@@ -43,6 +61,11 @@ const CityGuideContent: React.FC = () => {
       setError(null);
       const data = await fetchCityDetails(id, name);
       setCityData(data);
+      console.log('🏙️ City data loaded in CityGuideContent:', {
+        name: data.name,
+        imageType: typeof data.imageUrl,
+        landmarksCount: data.landmarks?.length || 0
+      });
     } catch (err) {
       console.error('Error loading city details:', err);
       setError('Şehir detayları yüklenirken bir hata oluştu.');
@@ -74,9 +97,8 @@ const CityGuideContent: React.FC = () => {
       onPress={() => navigateToContent(item)}
     >
       <Image 
-        source={{ uri: item.imageUrl }} 
+        source={getImageSource(item.imageUrl)} 
         style={styles.landmarkListImage} 
-        defaultSource={require('../../assets/city/placeholder.png')}
       />
       <View style={styles.landmarkListInfo}>
         <Text style={styles.landmarkName}>{item.name}</Text>
@@ -97,9 +119,8 @@ const CityGuideContent: React.FC = () => {
       onPress={() => navigateToContent(item)}
     >
       <Image 
-        source={{ uri: item.imageUrl }} 
+        source={getImageSource(item.imageUrl)} 
         style={styles.landmarkGridImage} 
-        defaultSource={require('../../assets/city/placeholder.png')}
       />
       <View style={styles.landmarkGridInfo}>
         <Text style={styles.landmarkGridName}>{item.name}</Text>
@@ -134,9 +155,8 @@ const CityGuideContent: React.FC = () => {
         <View style={styles.content}>
           {/* Şehir Görseli */}
           <Image 
-            source={{ uri: cityData.imageUrl }} 
+            source={getImageSource(cityData.imageUrl)} 
             style={styles.cityImage} 
-            defaultSource={require('../../assets/city/placeholder.png')}
           />
         
           {/* Şehir Bilgileri */}

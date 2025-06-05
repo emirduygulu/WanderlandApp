@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  ImageBackground,
-  Dimensions,
-  StatusBar,
-} from 'react-native';
-import { Ionicons, MaterialIcons, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
+import { FontAwesome, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { Colors } from '../../constants/Colors';
+import React from 'react';
+import {
+  Dimensions,
+  Image,
+  ImageBackground,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import FavoriteButton from '../FavoriteButton';
 
 const { width } = Dimensions.get('window');
 
@@ -36,6 +36,7 @@ interface ContentPageProps {
 }
 
 const ContentPage: React.FC<ContentPageProps> = ({
+  id,
   name,
   location,
   description,
@@ -48,14 +49,6 @@ const ContentPage: React.FC<ContentPageProps> = ({
   onFavoriteToggle,
 }) => {
   const navigation = useNavigation();
-  const [favorite, setFavorite] = useState(isFavorite);
-
-  const handleFavoritePress = () => {
-    setFavorite(!favorite);
-    if (onFavoriteToggle) {
-      onFavoriteToggle();
-    }
-  };
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -116,16 +109,25 @@ const ContentPage: React.FC<ContentPageProps> = ({
             </View>
           </View>
           
-          <TouchableOpacity 
-            style={[styles.favoriteButton, favorite ? styles.favoriteActive : {}]}
-            onPress={handleFavoritePress}
-          >
-            <Ionicons 
-              name={favorite ? "heart" : "heart-outline"} 
-              size={24} 
-              color={favorite ? "#fff" : "#E17055"} 
-            />
-          </TouchableOpacity>
+          <FavoriteButton
+            itemId={id || name}
+            itemType="place"
+            itemData={{
+              title: name,
+              description: description,
+              image: images[0]?.uri,
+              location: location,
+              rating: rating,
+              reviews: reviews,
+              distance: distance,
+            }}
+            size={24}
+            style={styles.favoriteButtonCustom}
+            onToggle={(isFavorited) => {
+              onFavoriteToggle?.();
+              console.log('Favori durumu:', isFavorited ? 'Eklendi' : 'Kaldırıldı');
+            }}
+          />
         </View>
         
         {/* Stats */}
@@ -371,6 +373,9 @@ const styles = StyleSheet.create({
   },
   spacer: {
     height: 40,
+  },
+  favoriteButtonCustom: {
+    // Add any custom styles for the FavoriteButton component here
   },
 });
 

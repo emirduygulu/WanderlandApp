@@ -1,4 +1,5 @@
 import React, { createContext, ReactNode, useContext, useState } from 'react';
+import { ImageSourcePropType } from 'react-native';
 import { blogData as initialBlogData } from '../data/BlogData';
 
 interface BlogPost {
@@ -8,7 +9,7 @@ interface BlogPost {
   yazar: string;
   tarih: string;
   kategori: string;
-  resim: string;
+  resim: ImageSourcePropType;
   konum: string;
   okunmaSuresi: string;
   additionalImages?: string[];

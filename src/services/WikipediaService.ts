@@ -15,13 +15,29 @@ export interface WikipediaSummary {
 
 export interface WikipediaSearchResult {
   title: string;
+  snippet: string;
+  pageid: number;
   description?: string;
-  url: string;
+  url?: string;
 }
 
 export interface WikipediaError {
   error: string;
   code?: number;
+}
+
+export interface WikipediaPageInfo {
+  title: string;
+  extract: string;
+  thumbnail?: {
+    source: string;
+    width: number;
+    height: number;
+  };
+  coordinates?: {
+    lat: number;
+    lon: number;
+  };
 }
 
 // Türkçe karakterleri normalize eden fonksiyon
@@ -354,11 +370,127 @@ export const testWikipediaService = async () => {
   }
 };
 
+// Wikipedia'da şehir arama
+export const searchCityOnWikipedia = async (cityName: string): Promise<WikipediaSearchResult[]> => {
+  try {
+    const searchQuery = `${cityName} şehir turizm`;
+    const url = `https://tr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cityName)}`;
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Wikipedia API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    return [{
+      title: data.title || cityName,
+      snippet: data.extract || `${cityName} hakkında bilgi.`,
+      pageid: data.pageid || 0
+    }];
+  } catch (error) {
+    console.error('Wikipedia search error:', error);
+    return [];
+  }
+};
+
+// Şehir detay bilgilerini alma
+export const getCityInfoFromWikipedia = async (cityName: string): Promise<WikipediaPageInfo | null> => {
+  try {
+    const url = `https://tr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cityName)}`;
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.warn(`Wikipedia'da ${cityName} bulunamadı`);
+      return null;
+    }
+    
+    const data = await response.json();
+    
+    return {
+      title: data.title || cityName,
+      extract: data.extract || `${cityName} hakkında detaylı bilgi mevcut değil.`,
+      thumbnail: data.thumbnail ? {
+        source: data.thumbnail.source,
+        width: data.thumbnail.width,
+        height: data.thumbnail.height
+      } : undefined,
+      coordinates: data.coordinates ? {
+        lat: data.coordinates.lat,
+        lon: data.coordinates.lon
+      } : undefined
+    };
+  } catch (error) {
+    console.error('Wikipedia detail error:', error);
+    return null;
+  }
+};
+
+// Şehir için önerilen aktiviteler alma (genel bilgi)
+export const getCityActivities = (cityName: string, season: string): string[] => {
+  try {
+    // Mevsime göre genel aktivite önerileri
+    const seasonalActivities: Record<string, string[]> = {
+      winter: [
+        'Kayak ve kış sporları',
+        'Sıcak mekanlar ziyareti',
+        'Kış festivalleri',
+        'Müze turu',
+        'Yerli mutfak deneyimi'
+      ],
+      spring: [
+        'Botanik bahçe gezisi',
+        'Şehir yürüyüşü',
+        'Açık hava kafeleri',
+        'Park ve bahçe ziyaretleri',
+        'Çiçek festivalleri'
+      ],
+      summer: [
+        'Plaj aktiviteleri',
+        'Su sporları',
+        'Açık hava etkinlikleri',
+        'Yaz festivalleri',
+        'Gece hayatı'
+      ],
+      autumn: [
+        'Sonbahar yürüyüşleri',
+        'Müze ve sanat galerisi turu',
+        'Yerel pazar ziyaretleri',
+        'Fotoğrafçılık',
+        'Sıcak içecek deneyimi'
+      ]
+    };
+    
+    return seasonalActivities[season] || seasonalActivities.spring;
+  } catch (error) {
+    console.error('Activity suggestion error:', error);
+    return ['Şehir turu', 'Yerel mutfak', 'Müze ziyareti'];
+  }
+};
+
+// Şehir hava durumu önerisi
+export const getSeasonalWeatherInfo = (season: string): string => {
+  const weatherInfo: Record<string, string> = {
+    winter: 'Soğuk ve karlı havalarda ılık kıyafetler tercih edin.',
+    spring: 'Değişken havalara karşı kat kat giyinmek idealdir.',
+    summer: 'Sıcak ve güneşli havalarda hafif kıyafetler tercih edin.',
+    autumn: 'Serin ve rüzgarlı havalara karşı rüzgarlık almanız önerilir.'
+  };
+  
+  return weatherInfo[season] || 'Mevsim koşullarına uygun kıyafet seçimi yapın.';
+};
+
 export default {
   fetchWikipediaSummary,
   searchWikipedia,
   fetchLandmarkInfo,
   fetchCityInfo,
   getHighQualityWikipediaImage,
-  testWikipediaService
+  testWikipediaService,
+  searchCityOnWikipedia,
+  getCityInfoFromWikipedia,
+  getCityActivities,
+  getSeasonalWeatherInfo
 }; 

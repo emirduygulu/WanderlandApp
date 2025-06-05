@@ -1,9 +1,7 @@
 // Category API Service
-import { searchFSQPlaces, getFSQPlaceDetails } from './Foursquare';
-import { searchOTMPlaces, getOTMPlaceDetails } from './OneTripMap';
+import { getFSQPlaceDetails, searchFSQPlaces } from './Foursquare';
 import { getDefaultLocation } from './Location';
-import { SEASONAL_CITIES, POPULAR_LANDMARKS } from '../data/PopulerLandmarks';
-import { fetchLandmarkImage } from './Unsplash';
+import { getSeasonalCities } from './SeasonalCitiesService';
 
 // Types
 export interface PlaceItem {
@@ -339,67 +337,46 @@ export const fetchDiscoverPlaces = async (category: string): Promise<PlaceItem[]
 
 // Mevsimsel şehirler için veri dönüştürme fonksiyonu
 const getSeasonalCityData = async (season: CategoryIds): Promise<PlaceItem[]> => {
-  // Sadece mevsimsel kategoriler için SEASONAL_CITIES'e erişim sağla
+  console.log(`🌍 getSeasonalCityData called for season: ${season}`);
+  
+  // Sadece mevsimsel kategoriler için geçerli
   const seasonalCategories = ['winter', 'spring', 'summer', 'autumn'] as const;
   type SeasonalCategoryType = typeof seasonalCategories[number];
   
   // Eğer verilen kategori bir mevsim kategorisi değilse boş dizi döndür
   if (!seasonalCategories.includes(season as any)) {
-    console.error(`Invalid seasonal category: ${season}`);
-    return [];
-  }
-  
-  const seasonData = SEASONAL_CITIES[season as SeasonalCategoryType];
-  if (!seasonData || !Array.isArray(seasonData)) {
-    console.error(`No season data found for ${season}`);
+    console.error(`❌ Invalid seasonal category: ${season}`);
     return [];
   }
 
-  const items: PlaceItem[] = [];
-
-  for (const cityData of seasonData) {
-    try {
-      // Şehir verilerini al
-      const cityName = cityData.city;
-      
-      // Şehir için popüler landmark varsa ilk görseli al
-      let imageUrl = null;
-      // TypeScript hatası için güvenli indeksleme
-      const cityLandmarks = (POPULAR_LANDMARKS as Record<string, any>)[cityName];
-      
-      if (cityLandmarks && Array.isArray(cityLandmarks) && cityLandmarks.length > 0) {
-        if (!cityLandmarks[0].image) {
-          // Eğer görseli henüz çekilmemişse API'den al
-          try {
-            imageUrl = await fetchLandmarkImage(cityName, cityLandmarks[0].name);
-          } catch (error) {
-            console.error(`Error fetching image for ${cityName}:`, error);
-          }
-        } else {
-          imageUrl = cityLandmarks[0].image;
-        }
-      }
-
-      // Eğer görsel alınamadıysa varsayılan görsel kullan
-      if (!imageUrl) {
-        imageUrl = `https://source.unsplash.com/random/800x600/?${encodeURIComponent(cityName)},travel`;
-      }
-
-      items.push({
-        id: `seasonal_${cityName.toLowerCase().replace(/\s/g, '_')}`,
-        name: cityName,
-        location: cityName,
-        imageUrl: imageUrl,
-        rating: 4.5 + Math.random() * 0.5, // 4.5-5.0 arası random bir değer
-        description: cityData.description,
-        highlights: cityData.highlights
-      });
-    } catch (error) {
-      console.error(`Error processing seasonal city data:`, error);
+  try {
+    // SeasonalCitiesService'den veri al
+    const seasonData = getSeasonalCities(season as SeasonalCategoryType);
+    console.log(`📊 SeasonalCitiesService returned:`, seasonData);
+    
+    if (!seasonData || !seasonData.cities || seasonData.cities.length === 0) {
+      console.error(`❌ No season data found for ${season}`);
+      return [];
     }
-  }
 
-  return items;
+    // SeasonalCity formatını PlaceItem formatına dönüştür
+    const items: PlaceItem[] = seasonData.cities.map((city) => ({
+      id: city.id,
+      name: city.name,
+      location: `${city.name}, ${city.country}`,
+      imageUrl: city.imageUrl,
+      rating: city.rating,
+      description: city.description,
+      highlights: city.highlights,
+      category: season
+    }));
+
+    console.log(`✅ Successfully converted ${items.length} cities to PlaceItems`);
+    return items;
+  } catch (error) {
+    console.error(`❌ Error getting seasonal city data for ${season}:`, error);
+    return [];
+  }
 };
 
 // Foursquare API verilerine göre yer listesi oluşturma
@@ -439,30 +416,44 @@ const transformFSQData = async (results: any[]): Promise<PlaceItem[]> => {
 
 // Belirli bir kategorinin detaylarını getir
 export const fetchCategoryData = async (categoryId: string): Promise<CategoryData> => {
+  console.log(`🔍 fetchCategoryData called with categoryId: ${categoryId}`);
+  
   const validCategoryId = categoryId as CategoryIds;
   
   if (!categoryMapping[validCategoryId]) {
+    console.log(`❌ No category mapping found for: ${categoryId}, returning mock data`);
     return getMockData(categoryId);
   }
   
   try {
     const category = categoryMapping[validCategoryId];
+    console.log(`✅ Category mapping found:`, category);
     
     // Eğer mevsimsel kategori ise, PopulerLandmarks'dan veri al
     const seasonalCategories = ['winter', 'spring', 'summer', 'autumn'];
     if (seasonalCategories.includes(validCategoryId)) {
+      console.log(`🌍 Processing seasonal category: ${validCategoryId}`);
+      
       const seasonalItems = await getSeasonalCityData(validCategoryId);
+      console.log(`📊 Seasonal items received:`, seasonalItems);
+      console.log(`📊 Seasonal items count: ${seasonalItems.length}`);
       
       if (seasonalItems.length > 0) {
-        return {
+        const result = {
           title: category.title,
           description: category.description,
           items: seasonalItems
         };
+        console.log(`✅ Returning seasonal data:`, result);
+        return result;
+      } else {
+        console.log(`⚠️ No seasonal items found, falling back to mock data`);
       }
     }
     
     // Eğer mevsimsel veriler elde edilemezse veya başka bir kategori ise
+    console.log(`🔄 Falling back to API or mock data for category: ${validCategoryId}`);
+    
     // API'den verileri çekmeye devam et
     const location = getDefaultLocation();
     const { latitude, longitude } = location;
@@ -483,24 +474,32 @@ export const fetchCategoryData = async (categoryId: string): Promise<CategoryDat
     
     // Eğer hiç veri alınamadıysa veya hata oluştuysa örnek verileri göster
     if (items.length === 0) {
+      console.log(`⚠️ No API data, using mock data for: ${categoryId}`);
       const mockData = getMockData(categoryId);
       items = mockData.items;
     }
     
-    return {
+    const finalResult = {
       title: category.title,
       description: category.description,
       items
     };
+    
+    console.log(`✅ Final result:`, finalResult);
+    return finalResult;
   } catch (error) {
-    console.error(`Error fetching category ${categoryId}:`, error);
+    console.error(`❌ Error fetching category ${categoryId}:`, error);
     // Hata durumunda mock veri dön
-    return getMockData(categoryId);
+    const mockResult = getMockData(categoryId);
+    console.log(`🔄 Returning mock data due to error:`, mockResult);
+    return mockResult;
   }
 };
 
 // API henüz hazır değilken kullanılacak mock veri
 export const getMockData = (categoryId: string): CategoryData => {
+  console.log(`🔄 getMockData called for categoryId: ${categoryId}`);
+  
   const mockCategories: Record<string, CategoryData> = {
     mountain: {
       title: 'Doğa Rotaları',
@@ -621,6 +620,8 @@ export const getMockData = (categoryId: string): CategoryData => {
           location: 'Bursa, Türkiye',
           imageUrl: 'https://source.unsplash.com/random/800x600/?ski,snow,mountain',
           rating: 4.8,
+          description: 'Türkiye\'nin en popüler kayak merkezi. Kar sporları ve kış eğlencesi için mükemmel.',
+          highlights: ['Kayak', 'Snowboard', 'Kar Manzarası', 'Teleferik']
         },
         {
           id: 'w2',
@@ -628,6 +629,8 @@ export const getMockData = (categoryId: string): CategoryData => {
           location: 'Erzurum, Türkiye',
           imageUrl: 'https://source.unsplash.com/random/800x600/?winter,snow,resort',
           rating: 4.7,
+          description: 'Dünya standartlarında kayak pistleri ve kar kalitesi.',
+          highlights: ['Profesyonel Pistler', 'Uzun Sezon', 'Kar Kalitesi']
         },
         {
           id: 'w3',
@@ -635,20 +638,8 @@ export const getMockData = (categoryId: string): CategoryData => {
           location: 'Kocaeli, Türkiye',
           imageUrl: 'https://source.unsplash.com/random/800x600/?snow,forest,winter',
           rating: 4.5,
-        },
-        {
-          id: 'w4',
-          name: 'Davos',
-          location: 'İsviçre',
-          imageUrl: 'https://source.unsplash.com/random/800x600/?davos,switzerland,snow',
-          rating: 4.9,
-        },
-        {
-          id: 'w5',
-          name: 'Innsbruck',
-          location: 'Avusturya',
-          imageUrl: 'https://source.unsplash.com/random/800x600/?innsbruck,austria,winter',
-          rating: 4.7,
+          description: 'İstanbul\'a yakın kış turizmi merkezi.',
+          highlights: ['İstanbul\'a Yakın', 'Aile Dostu', 'Günübirlik']
         }
       ]
     },
@@ -662,6 +653,8 @@ export const getMockData = (categoryId: string): CategoryData => {
           location: 'Hollanda',
           imageUrl: 'https://source.unsplash.com/random/800x600/?amsterdam,tulips,spring',
           rating: 4.8,
+          description: 'Dünyaca ünlü lale festivali ve kanal turları.',
+          highlights: ['Lale Festivali', 'Kanal Turu', 'Keukenhof', 'Bisiklet']
         },
         {
           id: 's2',
@@ -669,27 +662,8 @@ export const getMockData = (categoryId: string): CategoryData => {
           location: 'Japonya',
           imageUrl: 'https://source.unsplash.com/random/800x600/?kyoto,japan,cherryblossom',
           rating: 4.9,
-        },
-        {
-          id: 's3',
-          name: 'Provence',
-          location: 'Fransa',
-          imageUrl: 'https://source.unsplash.com/random/800x600/?provence,france,lavender',
-          rating: 4.7,
-        },
-        {
-          id: 's4',
-          name: 'Emirgan Korusu',
-          location: 'İstanbul, Türkiye',
-          imageUrl: 'https://source.unsplash.com/random/800x600/?istanbul,park,spring',
-          rating: 4.6,
-        },
-        {
-          id: 's5',
-          name: 'Keukenhof',
-          location: 'Hollanda',
-          imageUrl: 'https://source.unsplash.com/random/800x600/?keukenhof,netherlands,flowers',
-          rating: 4.9,
+          description: 'Kiraz çiçeği zamanı büyüleyici Japon bahçeleri.',
+          highlights: ['Sakura', 'Tapınaklar', 'Geleneksel Bahçeler', 'Bambu Ormanı']
         }
       ]
     },
@@ -703,6 +677,8 @@ export const getMockData = (categoryId: string): CategoryData => {
           location: 'Muğla, Türkiye',
           imageUrl: 'https://source.unsplash.com/random/800x600/?oludeniz,turkey,beach',
           rating: 4.9,
+          description: 'Türkiye\'nin en ünlü plajı, turkuaz deniz ve yamaç paraşütü.',
+          highlights: ['Yamaç Paraşütü', 'Turkuaz Deniz', 'Beyaz Kum', 'Doğal Güzellik']
         },
         {
           id: 'su2',
@@ -710,27 +686,8 @@ export const getMockData = (categoryId: string): CategoryData => {
           location: 'Yunanistan',
           imageUrl: 'https://source.unsplash.com/random/800x600/?santorini,greece,island',
           rating: 4.8,
-        },
-        {
-          id: 'su3',
-          name: 'Maldivler',
-          location: 'Maldivler',
-          imageUrl: 'https://source.unsplash.com/random/800x600/?maldives,beach,resort',
-          rating: 5.0,
-        },
-        {
-          id: 'su4',
-          name: 'Amalfi Sahili',
-          location: 'İtalya',
-          imageUrl: 'https://source.unsplash.com/random/800x600/?amalfi,italy,coast',
-          rating: 4.7,
-        },
-        {
-          id: 'su5',
-          name: 'Ibiza',
-          location: 'İspanya',
-          imageUrl: 'https://source.unsplash.com/random/800x600/?ibiza,spain,beach',
-          rating: 4.6,
+          description: 'Beyaz evler ve mavi kubbeler, romantik günbatımları.',
+          highlights: ['Günbatımı', 'Beyaz Evler', 'Volkanik Plajlar', 'Yunan Mutfağı']
         }
       ]
     },
@@ -744,42 +701,38 @@ export const getMockData = (categoryId: string): CategoryData => {
           location: 'Japonya',
           imageUrl: 'https://source.unsplash.com/random/800x600/?kyoto,japan,autumn',
           rating: 4.9,
+          description: 'Sonbahar yaprakları ile büyülü Japon bahçeleri.',
+          highlights: ['Momiji', 'Tapınaklar', 'Sonbahar Renkleri', 'Fotoğrafçılık']
         },
         {
           id: 'a2',
-          name: 'Vermont',
-          location: 'ABD',
-          imageUrl: 'https://source.unsplash.com/random/800x600/?vermont,usa,fall',
-          rating: 4.8,
-        },
-        {
-          id: 'a3',
           name: 'Yedigöller',
           location: 'Bolu, Türkiye',
           imageUrl: 'https://source.unsplash.com/random/800x600/?lake,forest,autumn',
           rating: 4.7,
-        },
-        {
-          id: 'a4',
-          name: 'Bavyera',
-          location: 'Almanya',
-          imageUrl: 'https://source.unsplash.com/random/800x600/?bavaria,germany,autumn',
-          rating: 4.6,
-        },
-        {
-          id: 'a5',
-          name: 'Edinburgh',
-          location: 'İskoçya',
-          imageUrl: 'https://source.unsplash.com/random/800x600/?edinburgh,scotland,autumn',
-          rating: 4.7,
+          description: 'Sonbahar renkleriyle ünlü doğal park.',
+          highlights: ['Sonbahar Renkleri', 'Doğa Yürüyüşü', 'Göller', 'Fotoğraf']
         }
       ]
     }
   };
   
-  return mockCategories[categoryId] || {
-    title: 'Kategori',
-    description: 'Bir kategori açıklaması',
-    items: []
+  const result = mockCategories[categoryId] || {
+    title: 'Test Kategorisi',
+    description: 'Bu bir test kategorisidir.',
+    items: [
+      {
+        id: 'test1',
+        name: 'Test Yeri',
+        location: 'Test Lokasyonu',
+        imageUrl: 'https://source.unsplash.com/random/800x600/?travel',
+        rating: 4.5,
+        description: 'Bu bir test açıklamasıdır.'
+      }
+    ]
   };
+  
+  console.log(`✅ Mock data for ${categoryId}:`, result);
+  console.log(`📊 Mock data items count: ${result.items.length}`);
+  return result;
 }; 

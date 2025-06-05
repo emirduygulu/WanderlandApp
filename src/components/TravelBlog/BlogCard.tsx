@@ -3,6 +3,7 @@ import React from 'react';
 import {
     Dimensions,
     Image,
+    ImageSourcePropType,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -18,7 +19,7 @@ interface BlogPost {
   yazar: string;
   tarih: string;
   kategori: string;
-  resim: string;
+  resim: ImageSourcePropType;
   konum: string;
   okunmaSuresi: string;
 }
@@ -32,7 +33,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog, onPress }) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.imageContainer}>
-        <Image source={{ uri: blog.resim }} style={styles.image} />
+        <Image source={blog.resim} style={styles.image} />
         <View style={styles.categoryBadge}>
           <Text style={styles.categoryText}>{blog.kategori}</Text>
         </View>
