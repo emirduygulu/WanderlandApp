@@ -40,6 +40,10 @@ olanak tanır. React Native ve Expo ile geliştirilen bu uygulama, iOS ve Androi
 - **AsyncStorage**: Yerel depolama için
 - **Expo Image Picker**: Görsel seçimi için
 - **React Native Webview**: Web içeriği görüntülemek için
+- **Wikipedia: Görsel ve içerik yardımı
+- **Unsplash: Görsel seçimi için
+- **Foursquare: Konum ve içerik bilgileri için
+- ** OneTripMap: Konum bilgileri için
 
 ## Uygulamanın Çalışma Şekli
 
